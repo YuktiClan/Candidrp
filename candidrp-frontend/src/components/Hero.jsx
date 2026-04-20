@@ -811,7 +811,7 @@ const listItem = {
                 md:top-1/2 
                 md:left-24 
                 md:-translate-y-1/2 
-                z-50 
+                z-10 
                 w-full md:w-fit 
                 text-center md:text-left
                 pointer-events-none
