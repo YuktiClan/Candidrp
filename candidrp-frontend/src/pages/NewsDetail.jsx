@@ -27,7 +27,63 @@ export default function NewsDetail() {
       });
   }, [slug]);
 
-  if (!post) return <div>Loading...</div>;
+ if (!post)
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden">
+
+      {/* 🔮 BACKGROUND GLOW */}
+      <div className="absolute w-[400px] h-[400px] bg-purple-500/20 rounded-full blur-[120px] animate-pulse"></div>
+      <div className="absolute w-[300px] h-[300px] bg-indigo-500/20 rounded-full blur-[100px] animate-pulse delay-300"></div>
+
+      <div className="flex flex-col items-center gap-8 z-10">
+
+        {/* 🔷 GLASS CARD */}
+        <div className="relative px-10 py-8 rounded-2xl backdrop-blur-xl bg-white/60 border border-purple-100 shadow-xl">
+
+          {/* 🔄 MOVING GRADIENT BAR */}
+          <div className="absolute top-0 left-0 w-full h-[3px] overflow-hidden rounded-t-2xl">
+            <div className="h-full w-1/2 bg-gradient-to-r from-purple-500 to-indigo-500 animate-[slide_1.5s_linear_infinite]"></div>
+          </div>
+
+          {/* 🌀 CENTER ANIMATION */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="relative w-16 h-16">
+
+              {/* outer ring */}
+              <div className="absolute inset-0 rounded-full border-2 border-purple-200"></div>
+
+              {/* rotating ring */}
+              <div className="absolute inset-0 rounded-full border-2 border-t-purple-600 border-r-indigo-500 border-b-transparent border-l-transparent animate-spin"></div>
+
+              {/* inner pulse */}
+              <div className="absolute inset-2 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full animate-ping opacity-30"></div>
+
+            </div>
+          </div>
+
+          {/* 🔤 TEXT + DOTS */}
+          <p className="text-sm tracking-[0.3em] text-gray-600 text-center flex items-center justify-center gap-1">
+            LOADING
+            <span className="animate-bounce [animation-delay:0ms]">.</span>
+            <span className="animate-bounce [animation-delay:150ms]">.</span>
+            <span className="animate-bounce [animation-delay:300ms]">.</span>
+          </p>
+
+        </div>
+      </div>
+
+      {/* 🔧 KEYFRAME (add once in global CSS or tailwind config) */}
+      <style>
+        {`
+          @keyframes slide {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+          }
+        `}
+      </style>
+
+    </div>
+  );
 
   return (
     <div>
@@ -318,6 +374,7 @@ export default function NewsDetail() {
 
                   <Link
                     to="/contact"
+                    state={{ scrollToForm: true }}
                     className="
                           block text-center w-full py-3 rounded-xl
                           bg-white text-slate-900 font-medium
