@@ -45,26 +45,29 @@ export default function Contact() {
     });
 
     useEffect(() => {
-        console.log("API:", import.meta.env.VITE_API_URL);
-        if (jobTitle) {
+    console.log("API:", import.meta.env.VITE_API_URL);
 
-            // ✅ Prefill message (ONLY job title + location)
-            // setFormData(prev => ({
-            //     ...prev,
-            //     message: `Applying for: ${jobTitle}\nLocation: ${jobLocation}`
-            // }));
+    const shouldScroll =
+        jobTitle || location.state?.scrollToForm;
 
-            // ✅ Scroll to form
-            if (formRef.current) {
-                setTimeout(() => {
-                    formRef.current.scrollIntoView({
-                        behavior: "smooth",
-                        block: "start"
-                    });
-                }, 200);
-            }
-        }
-    }, [jobTitle]);
+    if (shouldScroll && formRef.current) {
+        setTimeout(() => {
+            const yOffset = -100; // navbar height adjust
+            const y =
+                formRef.current.getBoundingClientRect().top +
+                window.pageYOffset +
+                yOffset;
+
+            window.scrollTo({
+                top: y,
+                behavior: "smooth",
+            });
+
+            // ✅ clear state (prevents repeat scroll on refresh)
+            window.history.replaceState({}, document.title);
+        }, 400); // increased delay for reliability
+    }
+}, [jobTitle, location.state]);
 
     const [file, setFile] = useState(null);
 
@@ -326,54 +329,9 @@ export default function Contact() {
                     </motion.p>
 
 
-                    <br /><br /><br /><br />
+                   
 
-                    <h2 className="text-4xl md:text-5xl font-bold text-[#4e0f89] mb-4">
-                        Our Locations
-                    </h2>
-
-                    <br /><br /><br />
-
-
-                    <div className="relative flex flex-col md:flex-row">
-
-                        <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-gray-300 -translate-x-1/2"></div>
-
-                        {/* UK */}
-                        <div className="md:w-1/2 md:pr-16 mb-12 md:mb-0 text-left">
-                            <p className="text-sm text-purple-500 font-medium mb-2 tracking-wide">
-                                UNITED KINGDOM
-                            </p>
-
-                            <h3 className="text-2xl font-semibold text-[#32055e] mb-4">
-                                UK Office
-                            </h3>
-
-                            <p className="text-gray-600 leading-relaxed">
-                                18, Chiltern Court <br />
-                                1 Marri Street, Watford
-                                WD24 5FZ <br />
-                                United Kingdom
-                            </p>
-                        </div>
-
-                        {/* INDIA */}
-                        <div className="md:w-1/2 md:pl-16 text-left">
-                            <p className="text-sm text-purple-500 font-medium mb-2 tracking-wide">
-                                INDIA
-                            </p>
-
-                            <h3 className="text-2xl font-semibold text-[#32055e] mb-4">
-                                India Office
-                            </h3>
-
-                            <p className="text-gray-600 leading-relaxed">
-                                130, Nimri Colony Ashok Vihar, Phase 4, New Delhi <br />
-                                India
-                            </p>
-                        </div>
-
-                    </div>
+                    
                 </div>
             </div>
 
@@ -556,7 +514,62 @@ export default function Contact() {
                 )}
             </div>
 
-            <ContactSection />
+           <div className="bg-gray-50 px-10 py-24">
+                <div className="max-w-6xl mx-auto text-center">
+
+            <h2 className="text-4xl md:text-5xl font-bold text-[#4e0f89] mb-4">
+                        Our Locations
+                    </h2>
+
+                    <br /><br /><br />
+
+
+                    <div className="relative flex flex-col md:flex-row">
+
+                        <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-gray-300 -translate-x-1/2"></div>
+
+                        {/* UK */}
+                        <div className="md:w-1/2 md:pr-16 mb-12 md:mb-0 text-left">
+                            <p className="text-sm text-purple-500 font-medium mb-2 tracking-wide">
+                                UNITED KINGDOM
+                            </p>
+
+                            <h3 className="text-2xl font-semibold text-[#32055e] mb-4">
+                                UK Office
+                            </h3>
+
+                            <p className="text-gray-600 leading-relaxed">
+                                18, Chiltern Court <br />
+                                1 Marri Street, Watford
+                                WD24 5FZ <br />
+                                United Kingdom
+                            </p>
+                        </div>
+
+                        {/* INDIA */}
+                        <div className="md:w-1/2 md:pl-16 text-left">
+                            <p className="text-sm text-purple-500 font-medium mb-2 tracking-wide">
+                                INDIA
+                            </p>
+
+                            <h3 className="text-2xl font-semibold text-[#32055e] mb-4">
+                                India Office
+                            </h3>
+
+                            <p className="text-gray-600 leading-relaxed">
+                                130, Nimri Colony Ashok Vihar, Phase 4, New Delhi <br />
+                                India
+                            </p>
+                        </div>
+
+                    </div>
+                    </div>
+                    </div>
+
+
+            
+
+            
 
             {/* 🔵 MAP SECTION */}
             <div className="px-10 py-16 bg-white">
