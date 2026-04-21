@@ -9,7 +9,7 @@ import img2 from "../assets/MerlynChander.png";
 import img3 from "../assets/SandraShantanu.png";
 import img4 from "../assets/RishabhShantanu.png";
 import img5 from "../assets/SatishKumar.png"; 
-
+import { FaLinkedin } from "react-icons/fa";
 
 
 const SLIDES = [
@@ -18,35 +18,40 @@ const SLIDES = [
     title: "OUR LEADERS,",
     subtitle: "Avinash Chander",
     image: img1,
-    prompt: "HEY @TEAM, VIEW AVINASH'S PROFILE"
+    prompt: "HEY @TEAM, VIEW AVINASH'S PROFILE",
+    linkedin: "https://www.linkedin.com/in/avinashchander-epicconsultant/"
   },
   {
     id: 2,
     title: "OUR LEADERS,",
     subtitle: "Merlyn Chander",
     image: img2,
-    prompt: "HEY @TEAM, VIEW MERLYN'S PROFILE"
+    prompt: "HEY @TEAM, VIEW MERLYN'S PROFILE",
+    linkedin: "https://www.linkedin.com/in/merlyn-chander-27194819/"
   },
   {
     id: 3,
     title: "OUR LEADERS,",
     subtitle: "Sandra Shantanu",
     image: img3,
-    prompt: "HEY @TEAM, VIEW SANDRA'S PROFILE"
+    prompt: "HEY @TEAM, VIEW SANDRA'S PROFILE",
+    linkedin: "https://www.linkedin.com/in/sandra-shantanu-b12b9418/"
   },
   {
     id: 4,
     title: "OUR LEADERS,",
     subtitle: "Rishabh Shantanu",
     image: img4,
-    prompt: "HEY @TEAM, VIEW RISHABH'S PROFILE"
+    prompt: "HEY @TEAM, VIEW RISHABH'S PROFILE",
+    linkedin: "https://www.linkedin.com/in/rishabh-shantanu-05300597/"
   },
   {
     id: 5,
     title: "OUR LEADERS,",
     subtitle: "Satish Kumar",
     image: img5,
-    prompt: "HEY @TEAM, VIEW SATISH'S PROFILE"
+    prompt: "HEY @TEAM, VIEW SATISH'S PROFILE",
+    linkedin: "https://www.linkedin.com/company/candid-resourcing-partners-ltd/",
   }
 ];
 
@@ -97,7 +102,7 @@ export default function About() {
     return indices;
   };
 
-  
+
   return (
     <div className="bg-white">
 
@@ -373,116 +378,120 @@ export default function About() {
       {/* 🔵 LEADERS SECTION */}
 
 
- {/* 🔵 LEADERS SECTION */}
-            <div className="relative min-h-[50vh] flex items-center justify-center 
-            bg-gradient-to-br from-[#0b1a3a] via-[#3b0a6b] to-[#6d28d9] 
-            text-white overflow-hidden py-10">     {/* Background Lighting */}
-                  {/* BACKGROUND PREVIEW BELT: Moving in the background layer */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40 overflow-hidden">
-                    <div className="flex gap-4 px-4 grayscale brightness-100">
-                      {getBeltIndices().map((item) => (
-                        <div key={item.key} className="w-48 h-64 flex-shrink-0">
-                          <img src={item.image} className="w-full h-full object-cover" alt="" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* UI LAYER: Content that needs to be positioned precisely */}
-            <div className="relative w-full max-w-[1600px] px-12 mx-auto flex items-center justify-center">       
-                    {/* TEXT CONTENT: Positioned on the left, independent of the box */}
-              <div className="
-                relative md:absolute
-                mt-6 md:mt-0
-                md:top-1/2 
-                md:left-24 
-                md:-translate-y-1/2 
-                z-10 
-                w-full md:w-fit 
-                text-center md:text-left
-                pointer-events-none
-              ">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`text-${currentSlide.id}`}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.4 }}
-            >
-              <h2 className="text-gray-400 text-sm sm:text-lg md:text-3xl font-semibold uppercase">
-                {currentSlide.title}
-              </h2>
-              <h1 className="text-3xl sm:text-4xl md:text-8xl font-bold tracking-tighter mt-2 leading-[1.1] flex flex-col">
-                {currentSlide.subtitle.split(' ').map((word, i) => (
-                  <span key={i}>{word}</span>
-                ))}
-              </h1>
-              <p className="mt-4 text-gray-300 max-w-full md:max-w-xs text-xs sm:text-sm leading-relaxed">
-                Focused on delivering an unparalleled, personalized experience.
-              </p>
-              <div 
-  onClick={() => navigate("/team")}
-className="mt-4 flex items-center justify-center md:justify-start gap-2 group cursor-pointer pointer-events-auto"
->
-  <span className="text-blue-500 text-xs font-bold tracking-[0.2em] uppercase group-hover:text-purple-400 transition-colors">
-    View all leaders
-  </span>
-  <span className="text-blue-500 group-hover:translate-x-1 transition-transform">
-    →
-  </span>
-</div>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* THE CENTER BOX: Fixed in the center of the viewport */}
-      <div className="relative z-40 flex justify-center items-center w-full">  
-       <div className="p-1 border-2 border-dotted border-white/20 rounded-sm">
-            <div className="relative w-[200px] h-[280px] sm:w-[260px] sm:h-[360px] md:w-[360px] md:h-[500px] bg-transparent overflow-hidden flex items-center justify-center shadow-[0_0_100px_rgba(0,0,0,0.9)]">
-              
-              <AnimatePresence initial={false} mode="popLayout">
-                <motion.div
-                  key={currentSlide.id}
-                  initial={{ x: "100%" }}
-                  animate={{ x: 0 }}
-                  exit={{ x: "-100%" }}
-                  transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
-                  className="absolute inset-0 w-full h-full"
-                >
-                  <img
-                    src={currentSlide.image}
-                    className="w-full h-full object-cover brightness-100 grayscale-0"
-                    alt={currentSlide.subtitle}
-                  />
-                  {/* Subtle color grading overlay */}
-                  <div className="absolute inset-0 bg-purple-900/5 mix-blend-overlay pointer-events-none" />
-                </motion.div>
-              </AnimatePresence>
-
-              {/* BOTTOM PROMPT BAR: Anchored to bottom of image box */}
-              <div className="absolute bottom-6 left-4 right-4 md:left-6 md:right-6 bg-black p-4 flex items-center justify-between border border-white/5 shadow-2xl z-50">
-                <div className="flex-1 mr-4 overflow-hidden">
-                  <AnimatePresence mode="wait">
-                    <motion.p 
-                      key={`prompt-${currentSlide.id}`}
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="text-[11px] font-bold tracking-wider uppercase text-center"
-                    >
-                      <span className="text-white/40">HEY</span>{" "}
-                      <span className="text-blue-500">@TEAM</span>,{" "}
-                      {currentSlide.prompt.split('@TEAM,')[1]}
-                    </motion.p>
-                  </AnimatePresence>
-                </div>
-                
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
+ <div className="relative min-h-[50vh] flex items-center justify-center 
+             bg-gradient-to-br from-[#0b1a3a] via-[#3b0a6b] to-[#6d28d9] 
+             text-white overflow-hidden py-10">     {/* Background Lighting */}
+         {/* BACKGROUND PREVIEW BELT: Moving in the background layer */}
+         <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40 overflow-hidden">
+           <div className="flex gap-4 px-4 grayscale brightness-100">
+             {getBeltIndices().map((item) => (
+               <div key={item.key} className="w-48 h-64 flex-shrink-0">
+                 <img src={item.image} className="w-full h-full object-cover" alt="" />
+               </div>
+             ))}
+           </div>
+         </div>
+ 
+         {/* UI LAYER: Content that needs to be positioned precisely */}
+         <div className="relative w-full max-w-[1600px] px-12 mx-auto flex items-center justify-center">
+           {/* TEXT CONTENT: Positioned on the left, independent of the box */}
+           <div className="
+                 relative md:absolute
+                 mt-6 md:mt-0
+                 md:top-1/2 
+                 md:left-24 
+                 md:-translate-y-1/2 
+                 z-50
+                 w-full md:w-fit 
+                 text-center md:text-left
+               ">
+             <AnimatePresence mode="wait">
+               <motion.div
+                 key={`text-${currentSlide.id}`}
+                 initial={{ opacity: 0, x: -20 }}
+                 animate={{ opacity: 1, x: 0 }}
+                 exit={{ opacity: 0, x: -10 }}
+                 transition={{ duration: 0.4 }}
+               >
+                 <h2 className="text-gray-400 text-sm sm:text-lg md:text-3xl font-semibold uppercase">
+                   {currentSlide.title}
+                 </h2>
+                 <h1 className="text-3xl sm:text-4xl md:text-8xl font-bold tracking-tighter mt-2 leading-[1.1] flex flex-col">
+                   {currentSlide.subtitle.split(' ').map((word, i) => (
+                     <span key={i}>{word}</span>
+                   ))}
+                 </h1>
+                 <p className="mt-4 text-gray-300 max-w-full md:max-w-xs text-xs sm:text-sm leading-relaxed">
+                   Focused on delivering an unparalleled, personalized experience.
+                 </p>
+                 <div
+                   onClick={() => navigate("/team")}
+                   className="mt-4 flex items-center justify-center md:justify-start gap-2 group cursor-pointer pointer-events-auto"
+                 >
+                   <span className="text-blue-500 text-xs font-bold tracking-[0.2em] uppercase group-hover:text-purple-400 transition-colors">
+                     View all leaders
+                   </span>
+                   <span className="text-blue-500 group-hover:translate-x-1 transition-transform">
+                     →
+                   </span>
+                 </div>
+               </motion.div>
+             </AnimatePresence>
+           </div>
+ 
+           {/* THE CENTER BOX: Fixed in the center of the viewport */}
+           <div className="relative z-20 flex justify-center items-center w-full">
+             <div className="p-1 border-2 border-dotted border-white/20 rounded-sm">
+               <div className="relative w-[200px] h-[280px] sm:w-[260px] sm:h-[360px] md:w-[360px] md:h-[500px] bg-transparent overflow-hidden flex items-center justify-center shadow-[0_0_100px_rgba(0,0,0,0.9)]">
+ 
+                 <AnimatePresence initial={false} mode="popLayout">
+                   <motion.div
+                     key={currentSlide.id}
+                     initial={{ x: "100%" }}
+                     animate={{ x: 0 }}
+                     exit={{ x: "-100%" }}
+                     transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
+                     className="absolute inset-0 w-full h-full"
+                   >
+                     <img
+                       src={currentSlide.image}
+                       className="w-full h-full object-cover brightness-100 grayscale-0"
+                       alt={currentSlide.subtitle}
+                     />
+                     {/* Subtle color grading overlay */}
+                     <div className="absolute inset-0 bg-purple-900/5 mix-blend-overlay pointer-events-none" />
+                   </motion.div>
+                 </AnimatePresence>
+ 
+                 {/* BOTTOM PROMPT BAR: Anchored to bottom of image box */}
+                 <div className="absolute bottom-6 left-4 right-4 md:left-6 md:right-6 bg-black p-4 flex items-center justify-between border border-white/5 shadow-2xl z-50">
+                   <div className="flex-1 mr-4 overflow-hidden">
+                     <AnimatePresence mode="wait">
+                       <motion.p
+                         key={`prompt-${currentSlide.id}`}
+                         initial={{ opacity: 0, y: 5 }}
+                         animate={{ opacity: 1, y: 0 }}
+                         className="text-[11px] font-bold tracking-wider uppercase text-center"
+                       >
+                         <span className="text-white/40">HEY</span>{" "}
+                         <span
+                           onClick={() => window.open(currentSlide.linkedin, "_blank")}
+                           className="text-blue-500 cursor-pointer hover:underline"
+                         >
+                           @TEAM
+                         </span>,{" "}
+                         {currentSlide.prompt.split('@TEAM,')[1]}
+                       </motion.p>
+                     </AnimatePresence>
+                   </div>
+ 
+                 </div>
+               </div>
+             </div>
+           </div>
+ 
+         </div>
+ 
 
       
 
