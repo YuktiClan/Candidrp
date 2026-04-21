@@ -26,7 +26,7 @@ export default function Navbar() {
      ${active === section ? "text-purple-600" : "text-gray-700 hover:text-purple-500"}`;
 
     return (
-        <nav className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-6xl bg-white/70 shadow-md z-50 rounded-xl border border-gray-200 backdrop-blur-md">
+        <nav className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-6xl bg-white/70 shadow-md z-[9999] rounded-xl border border-gray-200 backdrop-blur-md">
 
             <div className="flex justify-between items-center px-6 h-16">
                 <img src={logo} className="h-12 object-contain" />
