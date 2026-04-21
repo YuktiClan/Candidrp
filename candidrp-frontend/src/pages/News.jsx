@@ -97,8 +97,60 @@ export default function News() {
 </section>
 
 
+
       {/* ARTICLE GRID */}
       <section className="max-w-7xl mx-auto px-6 lg:px-12 py-24">
+        {!isLoaded && (
+  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+    {[...Array(6)].map((_, i) => (
+      <motion.div
+        key={i}
+        initial={{ opacity: 0, y: 40, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{
+          delay: i * 0.08,
+          duration: 0.6,
+          ease: "easeOut",
+        }}
+        className="relative"
+      >
+        {/* 🔮 GLASS CARD */}
+        <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-white/40 backdrop-blur-xl shadow-xl p-4">
+
+          {/* 🌈 AURORA BACKGROUND */}
+          <div className="absolute inset-0 opacity-40 animate-aurora bg-[radial-gradient(circle_at_20%_30%,#6366f1,transparent_40%),radial-gradient(circle_at_80%_70%,#a855f7,transparent_40%)]" />
+
+          {/* ✨ SHIMMER LIGHT */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent opacity-60 animate-shimmer" />
+
+          {/* 🧱 CONTENT STRUCTURE */}
+          <div className="relative z-10 flex flex-col gap-4">
+
+            {/* IMAGE (BLUR MORPH) */}
+            <motion.div
+              initial={{ scale: 1.2, filter: "blur(20px)" }}
+              animate={{ scale: 1, filter: "blur(8px)" }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
+              className="h-[180px] rounded-xl bg-gradient-to-br from-indigo-300/60 to-purple-300/60"
+            />
+
+            {/* TEXT */}
+            <div className="space-y-2">
+              <div className="h-3 w-1/3 rounded bg-white/50" />
+              <div className="h-5 w-full rounded bg-white/70" />
+              <div className="h-5 w-4/5 rounded bg-white/70" />
+              <div className="h-4 w-2/3 rounded bg-white/50" />
+            </div>
+          </div>
+
+          {/* 🔥 GLOW BORDER EFFECT */}
+          <div className="absolute inset-0 rounded-2xl border border-white/30 pointer-events-none" />
+
+        </div>
+      </motion.div>
+    ))}
+  </div>
+)}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
 
           
