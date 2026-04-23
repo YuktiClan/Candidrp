@@ -112,9 +112,9 @@ export default function JobsPage() {
          
           
             <h1 className="text-5xl md:text-6xl font-extrabold text-white tracking-tight mb-6 leading-[1.1] max-w-3xl">
-                Join Our {" "}
+                Available {" "}
                 <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                  Team
+                  Opportunities
                 </span>
             </h1>
 
