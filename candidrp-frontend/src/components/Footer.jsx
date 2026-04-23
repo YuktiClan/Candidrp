@@ -54,7 +54,7 @@ export default function Footer() {
     <div className="grid grid-cols-2 gap-x-6">
       <ul className="space-y-3 text-gray-300 text-sm">
         <li>Banking & Financial Services</li>
-        <li>Capital Markets</li>
+        
         <li>Wealth & Asset Management</li>
         <li>Risk & Compliance</li>
         <li>Corporate Banking</li>
@@ -65,9 +65,7 @@ export default function Footer() {
         <li>Information Technology</li>
         <li>Healthcare</li>
         <li>Finance</li>
-        <li>Life Sciences</li>
-        <li>Manufacturing</li>
-        <li>Logistics & Transportation</li>
+        
       </ul>
     </div>
   </div>
@@ -81,10 +79,10 @@ export default function Footer() {
     <ul className="space-y-3 text-gray-300 text-sm">
       <li>Global Search & Selection</li>
       <li>Recruitment Process Outsourcing (RPO)</li>
-      <li>General Staffing Solutions</li>
+      
       <li>IT Staff Augmentation</li>
       <li>Payroll & Compliance Management</li>
-      <li>Apprenticeship Solutions</li>
+      
       <li>Managed Services</li>
     </ul>
   </div>
