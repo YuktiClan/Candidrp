@@ -15,7 +15,7 @@ export default function GoogleMap() {
     ukStart: "https://www.google.com/maps?ll=55,-3&z=5&output=embed",
 
     // 🔹 Step 2 (FINAL location WITH marker)
-    indiaFinal: "https://www.google.com/maps?q=Nimri Colony Ashok Vihar Phase 4 New Delhi&z=15&output=embed",
+    indiaFinal: "https://www.google.com/maps?q=Nimri Colony Ashok Vihar Delhi 110052&z=15&output=embed",
     ukFinal: "https://www.google.com/maps?q=51.6636,-0.3960&z=15&output=embed",
   };
 
