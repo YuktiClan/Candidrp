@@ -535,7 +535,7 @@ export default function Contact() {
                             </p>
 
                             <h3 className="text-2xl font-semibold text-[#32055e] mb-4">
-                                Candid Resourcing Partners 
+                                Candid Resourcing Partners Ltd
                             </h3>
 
                             <p className="text-gray-600 leading-relaxed">
@@ -553,7 +553,7 @@ export default function Contact() {
                             </p>
 
                             <h3 className="text-2xl font-semibold text-[#32055e] mb-4">
-                                Candid Resourcing Partners
+                                Candid Resourcing Partners Ltd
                             </h3>
 
                             <p className="text-gray-600 leading-relaxed">
