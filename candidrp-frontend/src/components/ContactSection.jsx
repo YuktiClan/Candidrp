@@ -18,8 +18,8 @@ export default function ContactSection() {
 
           <div className="space-y-3 text-gray-700">
             <p>📧 contact@candidrp.com</p>
-            <p>📞 +44 7770133330</p>
-            <p>📍 India | UK</p>
+            
+            
           </div>
         </div>
 
