@@ -496,7 +496,7 @@ export default function About() {
       
 
       {/* Film Grain Texture */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03]" />
     </div> 
 
 
