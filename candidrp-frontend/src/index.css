@@ -25,3 +25,10 @@ body {
   animation: slideIn 0.4s ease-out;
 }
 
+
+/* Desktop fix */
+@media (min-width: 768px) {
+  .stat-card {
+    width: calc(25% - 12px) !important; /* ✅ 4 in one row */
+  }
+}
