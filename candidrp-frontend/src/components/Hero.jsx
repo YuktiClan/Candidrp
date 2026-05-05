@@ -26,7 +26,11 @@ import { FaLinkedin } from "react-icons/fa";
 
 // const loopData = [...team, ...team]; 
 
-
+const TESTIMONIALS = [
+  { text: "Candid Resourcing Partners is a highly reliable partner who successfully fills critical positions in record time. They have a thorough understanding of the talent landscape and are a great recruitment partner.", author: "Client Partner", company: "IT Sector" },
+  { text: "CANDID has provided us with excellent service over the years. Whenever there is an urgent requirement, we rely on them, knowing they will deliver without fail.", author: "HR Director", company: "Finance Industry" },
+  { text: "The team at Candidrp truly understands our recruitment needs and process flow. Their professional and friendly approach consistently delivers quality results.", author: "Talent Manager", company: "Healthcare Group" },
+];
 
 
 
@@ -466,96 +470,122 @@ export default function Hero() {
       </div>
 
       {/* ================= HERO ================= */}
-      <section className="relative h-[70vh] w-full overflow-hidden">
-
-        {/* SLIDER */}
+      {/* ═══════════════════════════════════════════════════════
+          2. IMAGE SLIDER HERO — "Find the Perfect Fit"
+      ═══════════════════════════════════════════════════════ */}
+      <section className="relative w-full overflow-hidden" style={{ height: "70vh" }}>
         <motion.div
           className="flex h-full"
           animate={{ x: `-${current * 100}%` }}
-          transition={
-            isAnimating
-              ? { duration: 0.8, ease: "easeInOut" }
-              : { duration: 0 }
-          }
+          transition={isAnimating ? { duration: 0.8, ease: "easeInOut" } : { duration: 0 }}
         >
-          {slides.map((img, index) => (
-            <img
-              key={index}
-              src={img}
-              className="w-full h-full object-cover flex-shrink-0"
-            />
+          {slides.map((img, i) => (
+            <img key={i} src={img} alt="" className="w-full h-full object-cover flex-shrink-0" />
           ))}
         </motion.div>
 
+        {/* gradient overlay */}
+        <div className="absolute inset-0" style={{
+          background: "linear-gradient(to right, rgba(31,4,52,0.92) 0%, rgba(13,7,100,0.55) 30%, rgba(13,7,100,0.15) 60%, transparent 100%)"
+        }} />
 
-
-        {/* OVERLAY */}
-        {/* <div className="absolute inset-0 bg-gradient-to-r from-[#1f0434]/90 via-[#0d0764]/20 to-transparent"></div> */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `linear-gradient(
-      to right,
-      rgba(31, 4, 52, 0.95) 0%,     /* LEFT - strong dark */
-      rgba(13, 7, 100, 0.6) 20%,    /* MIDDLE - smooth blend */
-      rgba(13, 7, 100, 0.2) 50%,    /* RIGHT FADE START */
-      rgba(13, 7, 100, 0) 100%      /* FULL TRANSPARENT */
-    )`
-          }}
-        ></div>
-
-        <div className="absolute inset-0 z-10 flex items-center justify-start px-16 text-white">
+        {/* text */}
+        <div className="absolute inset-0 z-10 flex items-center justify-start" style={{ padding: "0 64px" }}>
           <motion.div
-            className="max-w-2xl text-left"
             initial={{ opacity: 0, x: -80 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1, ease: "easeOut" }}
+            style={{ maxWidth: 640 }}
           >
+            {/* floating badge */}
+            <motion.div
+              animate={{ y: [0, -6, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              style={{ display: "inline-block", padding: "6px 16px", borderRadius: 99, marginBottom: 0,
+                background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)",
+                fontSize: 11, letterSpacing: 2, color: "#c4b5fd", fontWeight: 700 }}
+            >
+              ✦ CANDID RESOURCING PARTNERS
+            </motion.div>
 
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-[1.1]">
+            <h1 style={{ fontSize: "clamp(36px,5.5vw,72px)", fontWeight: 900, lineHeight: 1.1,
+              color: "#fff", letterSpacing: "-0.01em", marginBottom: 20 }}>
               FIND THE PERFECT{" "}
-              <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+              <span style={{ background: "linear-gradient(90deg,#818cf8,#c084fc)",
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
                 FIT WITH US!
               </span>
             </h1>
 
-            <p className="text-xl text-indigo-100 leading-relaxed max-w-xl">
+            <p style={{ fontSize: 17, color: "rgba(224,231,255,0.85)", lineHeight: 1.7, maxWidth: 480 }}>
               Our team brings extensive knowledge of your specific talent requirements across industries.
             </p>
 
+            {/* stats row */}
+            <div
+  style={{
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 16,
+    marginTop: 28,
+    maxWidth: 560
+  }}
+>
+  {[
+    ["Industry Expertise", "Banking, Finance, IT & Healthcare"],
+    ["Precision Hiring", "Insight-driven matching"],
+    ["Global Network", "UK & India reach"],
+    ["Long-Term Fit", "Retention-focused hiring"]
+  ].map(([n, l], i) => (
+    <motion.div
+      key={i}
+      whileHover={{ y: -4 }}
+      style={{
+        width: "calc(50% - 8px)", // ✅ mobile default (2 per row)
+        padding: "14px 12px",
+        borderRadius: 14,
+        background: "rgba(255,255,255,0.08)",
+        border: "1px solid rgba(255,255,255,0.12)",
+        backdropFilter: "blur(10px)",
+        textAlign: "center"
+      }}
+      className="stat-card"
+    >
+      <div
+        style={{
+          fontSize: 13,
+          fontWeight: 700,
+          color: "#c4b5fd",
+          marginBottom: 4
+        }}
+      >
+        {n}
+      </div>
 
-
+      <div
+        style={{
+          fontSize: 11,
+          color: "rgba(255,255,255,0.65)",
+          lineHeight: 1.3
+        }}
+      >
+        {l}
+      </div>
+    </motion.div>
+  ))}
+</div>
           </motion.div>
-
-          {/* DIAMOND INDICATORS */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-20">
-            {heroImages.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setCurrent(index + 1);
-                  setIsPaused(true);
-
-                  setTimeout(() => {
-                    setIsPaused(false);
-                  }, 5000);
-                }}
-                className={`text-xl transition-all ${current === index + 1
-                    ? "text-purple-700 scale-125"
-                    : "text-white/90"
-                  }`}
-              >
-                ◈
-              </button>
-            ))}
-          </div>
-
         </div>
 
-
-
-
-
+        {/* dot indicators */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+          {heroImages.map((_, i) => (
+            <button key={i} onClick={() => { setCurrent(i + 1); setIsPaused(true); setTimeout(() => setIsPaused(false), 5000); }}
+              style={{ fontSize: 18, background: "none", border: "none", cursor: "pointer",
+                color: current === i + 1 ? "#a855f7" : "rgba(255,255,255,0.5)",
+                transform: current === i + 1 ? "scale(1.4)" : "scale(1)", transition: "all 0.3s" }}>◈</button>
+          ))}
+        </div>
       </section>
 
       {/* ================= ABOUT ================= */}
@@ -567,8 +597,7 @@ export default function Hero() {
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
       >
-        <div className="grid md:grid-cols-2 items-center max-w-[1200px] mx-auto relative">
-
+<div className="grid md:grid-cols-2 items-center max-w-[1200px] mx-auto px-6 md:px-8 gap-10 relative">
           {/* TEXT → FROM LEFT */}
           <motion.div
             variants={fadeLeft}
@@ -615,17 +644,106 @@ export default function Hero() {
 
 
           {/* IMAGE → FROM RIGHT */}
-          <motion.div
-            variants={fadeRight}
-            className="flex justify-center"
-          >
-            <img
-              src={aboutImg2}
-              className="rounded-xl w-90  md:-ml-0 md:-mr-40"
+          <motion.div variants={fadeRight} style={{ display: "flex", justifyContent: "center", position: "relative" }}>
+            {/* glow behind image */}
+            <div style={{ position: "absolute", top: "10%", left: "10%", right: "10%", bottom: "10%",
+              background: "radial-gradient(circle, rgba(124,58,237,0.18), transparent 70%)",
+              borderRadius: "50%", filter: "blur(30px)" }} />
 
-            />
+            <motion.div
+              
+           
+              style={{ transform: "perspective(800px) rotateY(8deg) rotateX(3deg)",
+                borderRadius: 24, overflow: "hidden",
+                boxShadow: "0 30px 80px rgba(124,58,237,0.2), 0 8px 0 rgba(124,58,237,0.08)",
+                border: "2px solid rgba(124,58,237,0.12)" }}
+            >
+              <img
+                src={aboutImg2}
+                alt="About"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover"        // 👈 crops properly inside square
+                }}
+              />
+            </motion.div>
+
+            {/* floating badge */}
+           <div style={{ position: "absolute", bottom: "8%", left: "0%" }}>
+  
+  {/* 🔥 Purple glow outside */}
+  <div
+    style={{
+      position: "absolute",
+      inset: "-20px",
+      background:
+        "radial-gradient(circle, rgba(124,58,237,0.5), rgba(88,28,135,0.4), transparent 75%)",
+      filter: "blur(25px)",
+      zIndex: 0
+    }}
+  />
+
+  {/* Badge */}
+  <motion.div
+    style={{
+      position: "relative",
+      padding: "14px 20px",
+      background: "rgba(255,255,255,0.92)",
+      backdropFilter: "blur(16px)",
+      borderRadius: 16,
+      boxShadow: "0 10px 40px rgba(124,58,237,0.18)",
+      border: "1.5px solid rgba(124,58,237,0.15)",
+      zIndex: 1
+    }}
+  >
+    <div style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>
+      Talent Solutions
+    </div>
+    <div style={{ fontSize: 11, color: "#6b7280", letterSpacing: 0.5 }}>
+      Built for business growth
+    </div>
+  </motion.div>
+
+</div>
+
+            <motion.div
+        
+              style={{ position: "absolute", top: "6%", right: "-4%", padding: "12px 18px",
+                background: "rgba(255,255,255,0.95)",
+                borderRadius: 14, boxShadow: "0 10px 30px rgba(124,58,237,0.4)", color: "#080808" }}
+            >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            
+            {/* Icon */}
+            <div
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "rgba(255,255,255,0.2)",
+                fontSize: 24
+              }}
+            >
+              🌐
+            </div>
+
+            {/* Text */}
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700 }}>
+                UK + India
+              </div>
+              <div style={{ fontSize: 10, opacity: 0.85 }}>
+                Global delivery
+              </div>
+            </div>
+
+          </div>           
+           </motion.div>
           </motion.div>
-
         </div>
       </motion.section>
 
@@ -787,7 +905,41 @@ export default function Hero() {
 
         </motion.div>
 
-        <motion.img variants={fadeUp} src={hero4} />
+<div
+  style={{
+    position: "relative",
+    display: "inline-block"
+  }}
+>
+  {/* Square Glow */}
+  <div
+    style={{
+      position: "absolute",
+      top: "-30px",
+      bottom: "-30px",
+      left: "-30px",
+      right: "-30px",
+      borderRadius: "30px", // 👈 slightly bigger than image
+      background: "rgba(147,51,234,0.35)", // solid purple base
+      filter: "blur(60px)", // 👈 soft edges
+      zIndex: 0
+    }}
+  />
+
+  {/* Image */}
+  <motion.img
+    variants={fadeUp}
+    src={hero4}
+    style={{
+      borderRadius: "20px",
+      width: "100%",
+      height: "auto",
+      position: "relative",
+      zIndex: 1
+    }}
+  />
+</div>
+
       </motion.section>
 
 
@@ -909,48 +1061,87 @@ export default function Hero() {
 
 
         {/* Film Grain Texture */}
-        <div className="fixed inset-0 pointer-events-none opacity-[0.03]" />
+        <div className="fixed inset-0 pointer-events-none opacity-[0.03] " />
       </div>
 
       {/* ================= TESTIMONIALS ================= */}
-      <section className="py-20 px-16 bg-gray-50">
-        <h2 className="text-4xl font-bold mb-10 text-[#531192]">
-          OUR LATEST CLIENT'S FEEDBACK
-        </h2>
+      <section style={{ padding: "100px 40px",
+        background: "linear-gradient(180deg,#fdfbff 0%,#f5f3ff 100%)" }}>
+
+        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }} transition={{ duration: 0.7 }}
+          style={{ textAlign: "center", marginBottom: 56 }}>
+          <span style={{ padding: "6px 18px", borderRadius: 99, fontSize: 11, fontWeight: 700,
+            letterSpacing: 2, textTransform: "uppercase", color: "#f59e0b",
+            background: "linear-gradient(135deg,#4c1d95,#7c3aed)", marginBottom: 16,
+            display: "inline-block" }}>
+            TESTIMONIALS
+          </span>
+          <h2 style={{ fontSize: "clamp(26px,4vw,42px)", fontWeight: 800, marginTop: 16,
+            background: "linear-gradient(135deg,#3b0764,#7c3aed)",
+            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+            OUR LATEST CLIENT'S FEEDBACK
+          </h2>
+        </motion.div>
 
         <motion.div
-          className="grid md:grid-cols-3 gap-8"
-          variants={stagger}
-          initial="hidden"
-          animate="show"
-        >
-          {[
-            {
-              text: "Candid Resourcing Partners is a highly reliable partner who successfully fills critical positions in record time. They have a thorough understanding of the talent landscape and are a great recruitment partner.",
-            },
-            {
-              text: "CANDID has provided us with excellent service over the years. Whenever there is an urgent requirement, we rely on them, knowing they will deliver without fail.",
-            },
-            {
-              text: "The team at Candidrp truly understands our recruitment needs and process flow. Their professional and friendly approach consistently delivers quality results.",
-            },
-          ].map((item, i) => (
-            <motion.div
-              key={i}
-              variants={fadeUp}
-              whileHover={{ scale: 1.05 }}
-              className="bg-white p-6 rounded-xl shadow-md border border-gray-100"
-            >
-              {/* Quote Icon */}
-              <div className="text-purple-700 text-3xl mb-3">❝</div>
+          style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))",
+            gap: 24, maxWidth: 1200, margin: "0 auto" }}
+          variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}>
+          {TESTIMONIALS.map((item, i) => (
+            <motion.div key={i} variants={fadeUp}
+              whileHover={{ y: -10, scale: 1.02,
+                boxShadow: "0 30px 70px rgba(124,58,237,0.15), 0 0 0 1.5px rgba(124,58,237,0.15)" }}
+              style={{ background: "#fff", borderRadius: 24, padding: 32, position: "relative",
+                border: "1.5px solid rgba(124,58,237,0.1)", cursor: "pointer",
+                boxShadow: "0 8px 30px rgba(124,58,237,0.07)",
+                transform: "perspective(800px) rotateX(0deg)", transition: "box-shadow 0.3s" }}>
 
-              {/* Feedback */}
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                {item.text}
-              </p>
+              {/* decorative quote */}
+              <div style={{ position: "absolute", top: 16, right: 24, fontSize: 72,
+                fontFamily: "Georgia,serif", color: "rgba(124,58,237,0.08)", lineHeight: 1 }}>❝</div>
 
-              {/* Client Name */}
+              {/* stars */}
+              <div style={{ marginBottom: 16 }}>
+                {/* Top Line */}
+                <div
+                  style={{
+                    width: 40,
+                    height: 4,
+                    borderRadius: 10,
+                    background: "linear-gradient(90deg,#818cf8,#c084fc)"
+                  }}
+                />
 
+                {/* Bottom Line */}
+                <div
+                  style={{
+                    width: 24,
+                    height: 4,              // 👈 same height (important)
+                    borderRadius: 10,
+                    marginTop: 6,
+                    background: "#c084fc"   // 👈 solid color so it's visible
+                  }}
+                />
+              </div>
+            
+
+              <p style={{ color: "#4b5563", lineHeight: 1.75, fontSize: 14, marginBottom: 24,
+                position: "relative", zIndex: 1 }}>"{item.text}"</p>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 44, height: 44, borderRadius: "50%",
+                  background: "linear-gradient(135deg,#7c3aed,#a855f7)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: "#fff", fontWeight: 800, fontSize: 16,
+                  boxShadow: "0 4px 14px rgba(124,58,237,0.35)" }}>
+                  {item.author[0]}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: "#1e1b4b" }}>{item.author}</div>
+                  <div style={{ fontSize: 12, color: "#7c3aed" }}>{item.company}</div>
+                </div>
+              </div>
             </motion.div>
           ))}
         </motion.div>
@@ -962,19 +1153,3 @@ export default function Hero() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
