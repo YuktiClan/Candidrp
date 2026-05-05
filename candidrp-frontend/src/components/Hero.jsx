@@ -499,11 +499,18 @@ export default function Hero() {
           >
             {/* floating badge */}
             <motion.div
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              style={{ display: "inline-block", padding: "6px 16px", borderRadius: 99, marginBottom: 0,
-                background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)",
-                fontSize: 11, letterSpacing: 2, color: "#c4b5fd", fontWeight: 700 }}
+              style={{
+                display: "inline-block",
+                padding: "6px 16px",
+                borderRadius: 99,
+                marginBottom: 0,
+                background: "rgba(255,255,255,0.1)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                fontSize: 11,
+                letterSpacing: 2,
+                color: "#c4b5fd",
+                fontWeight: 700
+              }}
             >
               ✦ CANDID RESOURCING PARTNERS
             </motion.div>
