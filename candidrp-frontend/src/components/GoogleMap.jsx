@@ -45,27 +45,32 @@ export default function GoogleMap({ selectedCountry }) {
 
       {/* 🔘 BUTTONS */}
       <div className="flex justify-center gap-4 mb-6">
-        <button
-          onClick={() => handleClick("india")}
-          className="px-5 py-2 rounded-full border bg-white hover:bg-gray-100"
-        >
-          🇮🇳 India
-        </button>
 
-        <button
-          onClick={() => handleClick("uk")}
-          className="px-5 py-2 rounded-full border bg-white hover:bg-gray-100"
-        >
-          🇬🇧 UK
-        </button>
+  {/* UK */}
+  <button
+    onClick={() => handleClick("uk")}
+    className="px-5 py-2 rounded-full border bg-white hover:bg-gray-100"
+  >
+    🇬🇧 UK
+  </button>
 
-        <button
-          onClick={() => setStep("world")}
-          className="px-5 py-2 rounded-full border bg-white hover:bg-gray-100"
-        >
-          🌍 Reset
-        </button>
-      </div>
+  {/* INDIA */}
+  <button
+    onClick={() => handleClick("india")}
+    className="px-5 py-2 rounded-full border bg-white hover:bg-gray-100"
+  >
+    🇮🇳 India
+  </button>
+
+  {/* RESET */}
+  <button
+    onClick={() => setStep("world")}
+    className="px-5 py-2 rounded-full border bg-white hover:bg-gray-100"
+  >
+    🌍 Reset
+  </button>
+
+</div>
 
       {/* 🗺 MAP */}
       <div className="relative w-full h-[450px] rounded-xl overflow-hidden shadow-lg">
