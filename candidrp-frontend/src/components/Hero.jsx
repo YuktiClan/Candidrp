@@ -490,7 +490,7 @@ export default function Hero() {
         }} />
 
         {/* text */}
-        <div className="absolute inset-0 z-10 flex items-center justify-start" style={{ padding: "0 64px" }}>
+        <div className="absolute inset-0 z-10 flex items-center justify-start" className="absolute inset-0 z-10 flex items-center justify-start px-4 sm:px-6 md:px-12 lg:px-16">
           <motion.div
             initial={{ opacity: 0, x: -80 }}
             animate={{ opacity: 1, x: 0 }}
@@ -501,7 +501,8 @@ export default function Hero() {
             <motion.div
               style={{
                 display: "inline-block",
-                padding: "6px 16px",
+                padding: "3px 16px",
+              
                 borderRadius: 99,
                 marginBottom: 0,
                 background: "rgba(255,255,255,0.1)",
@@ -604,24 +605,22 @@ export default function Hero() {
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
       >
-<div className="grid md:grid-cols-2 items-center max-w-[1200px] mx-auto px-6 md:px-8 gap-10 relative">
-          {/* TEXT → FROM LEFT */}
-          <motion.div
-            variants={fadeLeft}
-            className="px-6 md:px-0 md:-ml-20"
-          >
-            <span className="bg-gradient-to-r from-purple-900 to-purple-500  text-yellow-400 px-3 py-2 rounded-full text-sm font-medium">
+<div className="grid md:grid-cols-2 items-center w-full max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 gap-8 md:gap-12 lg:gap-16">
 
-              ABOUT US
-            </span>
+  <motion.div
+    variants={fadeLeft}
+    className="px-2 sm:px-4 md:px-0"
+  >
+    <span className="bg-gradient-to-r from-purple-900 to-purple-500 text-yellow-400 px-3 py-2 rounded-full text-sm font-medium">
+      ABOUT US
+    </span>
 
-
-            <h2 className="text-4xl font-bold mt-4 mb-4 text-[#531192]">
-              Global Reach, Local Expertise
-            </h2>
+    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mt-4 mb-4 text-[#531192]">
+      Global Reach, Local Expertise
+    </h2>
             <br />
 
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 mb-6 text-justify">
               At Candid Resourcing Partners Ltd, we focus on solving recruitment challenges by delivering the right talent that fuels business growth and long-term success.
               <br /><br />
               With strong expertise across banking, finance, IT, and healthcare, we use market insights and extensive networks to provide accurate, tailored hiring solutions. From junior roles to senior leadership, we ensure every placement aligns with your objectives and contributes to lasting organisational success.
@@ -659,8 +658,8 @@ export default function Hero() {
 
             <motion.div
               
-           
-              style={{ transform: "perspective(800px) rotateY(8deg) rotateX(3deg)",
+              
+              style={{ transform: "perspective(800px) rotateY(8deg) rotateX(3deg) scale(0.92)",
                 borderRadius: 24, overflow: "hidden",
                 boxShadow: "0 30px 80px rgba(124,58,237,0.2), 0 8px 0 rgba(124,58,237,0.08)",
                 border: "2px solid rgba(124,58,237,0.12)" }}
@@ -693,63 +692,77 @@ export default function Hero() {
 
   {/* Badge */}
   <motion.div
-    style={{
-      position: "relative",
-      padding: "14px 20px",
-      background: "rgba(255,255,255,0.92)",
-      backdropFilter: "blur(16px)",
-      borderRadius: 16,
-      boxShadow: "0 10px 40px rgba(124,58,237,0.18)",
-      border: "1.5px solid rgba(124,58,237,0.15)",
-      zIndex: 1
-    }}
-  >
-    <div style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>
-      Talent Solutions
-    </div>
-    <div style={{ fontSize: 11, color: "#6b7280", letterSpacing: 0.5 }}>
-      Built for business growth
-    </div>
-  </motion.div>
+  className="
+    relative 
+    px-2 py-1           /* mobile (very small) */
+    sm:px-3 sm:py-2     /* tablet */
+    md:px-5 md:py-3     /* desktop */
+    bg-white/90 
+    backdrop-blur-xl 
+    rounded-xl md:rounded-2xl
+    shadow-[0_10px_40px_rgba(124,58,237,0.18)]
+    border border-purple-200/50
+    z-[1]
+  "
+>
+  <div className="text-[10px] sm:text-[12px] md:text-[14px] font-semibold text-gray-900 leading-tight">
+    Talent Solutions
+  </div>
+
+  <div className="text-[10px] sm:text-[10px] md:text-[11px] text-gray-500 tracking-wide">
+    Built for business growth
+  </div>
+</motion.div>
 
 </div>
 
             <motion.div
-        
-              style={{ position: "absolute", top: "6%", right: "-4%", padding: "12px 18px",
-                background: "rgba(255,255,255,0.95)",
-                borderRadius: 14, boxShadow: "0 10px 30px rgba(124,58,237,0.4)", color: "#080808" }}
-            >
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            
-            {/* Icon */}
-            <div
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "rgba(255,255,255,0.2)",
-                fontSize: 24
-              }}
-            >
-              🌐
-            </div>
+  className="
+    absolute 
+    top-2 right-1          /* mobile position */
+    sm:top-4 sm:right-2    /* tablet */
+    md:top-[6%] md:right-4 /* desktop (same as before) */
 
-            {/* Text */}
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 700 }}>
-                UK + India
-              </div>
-              <div style={{ fontSize: 10, opacity: 0.85 }}>
-                Global delivery
-              </div>
-            </div>
+    px-2 py-1              /* mobile padding */
+    sm:px-3 sm:py-2
+    md:px-4 md:py-2.5
 
-          </div>           
-           </motion.div>
+    bg-white/95 
+    rounded-lg md:rounded-xl
+    shadow-[0_10px_30px_rgba(124,58,237,0.4)]
+    text-[#080808]
+    z-10
+  "
+>
+  <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
+
+    {/* Icon */}
+    <div
+      className="
+        flex items-center justify-center 
+        rounded-full 
+        bg-white/20
+
+        w-4 h-4 text-[10px]      /* mobile */
+        sm:w-5 sm:h-5 sm:text-sm
+        md:w-7 md:h-7 md:text-lg
+      "
+    >
+      🌐
+    </div>
+
+    {/* Text */}
+    <div className="text-[10px] sm:text-[10px] md:text-[14px] leading-tight">
+      <div className="font-semibold">
+        UK + India
+      </div>
+      <div className="opacity-80 text-[10px] sm:text-[9px] md:text-[11px]">
+        Global delivery
+      </div>
+    </div>
+
+  </div>
+</motion.div>
           </motion.div>
         </div>
       </motion.section>
@@ -885,8 +898,7 @@ export default function Hero() {
 
       {/* ================= INVESTORS ================= */}
       <motion.section
-        className="py-20 px-16 grid md:grid-cols-2 gap-10 items-center"
-        variants={stagger}
+        className="py-16 px-4 sm:px-6 md:px-10 lg:px-16 grid md:grid-cols-2 gap-8 md:gap-10 items-center"        variants={stagger}
         initial="hidden"
         whileInView="show"
         viewport={{ once: true }}
@@ -900,7 +912,7 @@ export default function Hero() {
             GLOBAL TALENT SOLUTIONS
           </h2>
 
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-justify">
             We are a young company with a proven track record of commitment to long-term value creation. Our approach is rooted in commitment, innovation, and a deep understanding of evolving business needs.
             <br /><br />
             By leveraging advanced technology and data-driven insights, we are strategically positioned to create sustainable value for our clients and partners. As the Indian economy continues to grow, the demand for skilled talent is expected to rise significantly—presenting a strong opportunity for us to expand our capabilities and deliver impactful recruitment solutions.
@@ -1160,3 +1172,5 @@ export default function Hero() {
     </div>
   );
 }
+
+
