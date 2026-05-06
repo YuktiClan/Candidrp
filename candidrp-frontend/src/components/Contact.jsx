@@ -793,7 +793,7 @@ export default function Contact() {
                       <MapPin className="w-4 md:w-5 h-4 md:h-5 text-purple-400" />
                     </div>
                     <div>
-                      <h4 className="text-slate-400 text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] mb-1">Postal</h4>
+                      <h4 className="text-slate-400 text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] mb-1">Address</h4>
                       {loc.address.map((line, i) => (
                         <p key={i} className="text-[#1a0633] text-xs md:text-sm font-semibold">{line}</p>
                       ))}
