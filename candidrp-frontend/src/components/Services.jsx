@@ -50,12 +50,30 @@ export default function Services() {
   initial={{ opacity: 0, x: -80 }}
   animate={{ opacity: 1, x: 0 }}
   transition={{ duration: 1, ease: "easeOut" }}
-  className="relative z-10 max-w-5xl"
+  className="relative z-10 max-w-5xl pt-24 md:pt-0"
 >
   
-  <h1 className="text-5xl md:text-6xl font-extrabold text-white tracking-tight mb-6 leading-[1.1] max-w-3xl">
-    Customised Solutions Which{" "}
-    <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+ <h1
+  style={{
+    fontSize: "clamp(40px,5.5vw,65px)",
+    fontWeight: 900,
+    lineHeight: 1.1,
+    color: "#fff",
+    letterSpacing: "-0.01em",
+    marginBottom: 20
+  }}
+>
+  Customised Solutions{" "}
+  <br />
+  Which{" "}
+  <span
+    style={{
+      background: "linear-gradient(90deg,#818cf8,#c084fc)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      backgroundClip: "text"
+    }}
+  >
     Address Those Specific Needs
   </span>
 </h1>
@@ -63,11 +81,9 @@ export default function Services() {
   <p className="text-xl text-indigo-100 leading-relaxed max-w-xl">
         Your Strategic Partner in Exceptional Talent Acquisition
   </p>
-  
 
- 
-  
 </motion.div>
+         
 {/* Bottom Fade */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent" />
       </section>
