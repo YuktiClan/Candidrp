@@ -55,6 +55,10 @@ cloudinary.config(
     api_secret=os.getenv("CLOUDINARY_API_SECRET")
 )
 
+@app.get("/ping")
+def ping():
+    return {"status": "alive"}
+
 
 # admin login password
 def validate_password(password):
