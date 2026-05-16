@@ -55,6 +55,10 @@ cloudinary.config(
     api_secret=os.getenv("CLOUDINARY_API_SECRET")
 )
 
+@app.get("/")
+def home():
+    return {"message": "Backend Running"}
+
 @app.get("/ping")
 def ping():
     return {"status": "alive"}
