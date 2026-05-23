@@ -1,21 +1,22 @@
+
+
+
+
+
+
 import React, { useState, useEffect } from 'react';
 import {
   FileSpreadsheet,
   Save,
-  Undo,
-  Redo,
-  Search,
   Plus,
   ChevronDown,
   Grid,
   FileText,
   CheckCircle2,
-  AlertCircle,
   Lock,
   Unlock,
   Trash2
 } from 'lucide-react';
-
 
 // -------------------------
 // TYPES
@@ -23,6 +24,7 @@ import {
 type Job = {
   id?: string;
   _id?: string;
+
   title: string;
   location: string;
   experience_from: string;
@@ -34,12 +36,9 @@ type Job = {
   ctc: string;
   type: string;
   description: string;
+
   isSaved?: boolean;
   isEditing?: boolean;
-
-
-  // // ✅ NEW FIELD
-  // apply_link?: string;
 };
 
 type Field = {
@@ -59,7 +58,7 @@ type ActiveCell = {
 const App = () => {
 
   // -------------------------
-  // EMPTY TEMPLATE
+  // EMPTY JOB
   // -------------------------
   const emptyJob: Job = {
     title: "",
@@ -73,23 +72,40 @@ const App = () => {
     ctc: "",
     type: "",
     description: "",
-    isSaved: false,
-    isEditing: false,
 
-    // apply_link: ""
+    isSaved: false,
+    isEditing: true
   };
 
   // -------------------------
-  // STATE
+  // STATES
   // -------------------------
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [activeCell, setActiveCell] = useState<ActiveCell>(null);
-  const [status, setStatus] = useState("Loading...");
 
-  const [showFilter, setShowFilter] = useState(false);
+  const [modalText, setModalText] = useState("");
 
-  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+  const [activeCell, setActiveCell] =
+    useState<ActiveCell>(null);
 
+  const [status, setStatus] =
+    useState("Loading...");
+
+  const [showFilter, setShowFilter] =
+    useState(false);
+
+  const [deleteIndex, setDeleteIndex] =
+    useState<number | null>(null);
+
+  const [descriptionModal, setDescriptionModal] =
+    useState<{
+      open: boolean;
+      jobIndex: number | null;
+      fieldKey: keyof Job | null;
+    }>({
+      open: false,
+      jobIndex: null,
+      fieldKey: null
+    });
 
   const [filters, setFilters] = useState({
     title: "",
@@ -102,79 +118,149 @@ const App = () => {
   // FIELDS
   // -------------------------
   const fields: Field[] = [
-    { label: "Job Title", key: "title", placeholder: "e.g. Full Stack Developer" },
-    { label: "Location", key: "location", placeholder: "e.g. Noida, Delhi, Remote" },
-    { label: "Experience From", key: "experience_from", placeholder: "0" },
-    { label: "Experience To", key: "experience_to", placeholder: "5" },
-    { label: "Vacancy", key: "vacancy", placeholder: "1" },
-    { label: "Industry", key: "industry", placeholder: "Tech" },
-    { label: "Department", key: "department", placeholder: "Product" },
-    { label: "Education", key: "education", placeholder: "Bachelors" },
-    { label: "CTC ( Salary per Annum )", key: "ctc", placeholder: "10-15 LPA" },
+    {
+      label: "Job Title",
+      key: "title",
+      placeholder: "e.g. Full Stack Developer"
+    },
+
+    {
+      label: "Location",
+      key: "location",
+      placeholder: "e.g. Noida, Delhi"
+    },
+
+    {
+      label: "Experience From",
+      key: "experience_from",
+      placeholder: "0"
+    },
+
+    {
+      label: "Experience To",
+      key: "experience_to",
+      placeholder: "5"
+    },
+
+    {
+      label: "Vacancy",
+      key: "vacancy",
+      placeholder: "1"
+    },
+
+    {
+      label: "Industry",
+      key: "industry",
+      placeholder: "Tech"
+    },
+
+    {
+      label: "Department",
+      key: "department",
+      placeholder: "Product"
+    },
+
+    {
+      label: "Education",
+      key: "education",
+      placeholder: "Bachelors"
+    },
+
+    {
+      label: "CTC",
+      key: "ctc",
+      placeholder: "10-15 LPA"
+    },
 
     {
       label: "Type",
       key: "type",
       type: "select",
-      options: ["Full-Time", "Part-Time", "Internship"]
+      options: [
+        "Full-Time",
+        "Part-Time",
+        "Internship"
+      ]
     },
-    // {
-    //   label: "Apply Link (External URL)",
-    //   key: "apply_link",
-    //   placeholder: "https://your-apply-link.com"
-    // },
+
     {
-      label: "Description About Job Role, Requirements,etc.",
+      label: "Description",
       key: "description",
       isTextarea: true,
-      placeholder: "e.g. Job details, requirements, responsibilities"
+      placeholder: "Write job description..."
     }
   ];
 
   // -------------------------
-  // FETCH JOBS
+  // FETCH
   // -------------------------
   const fetchJobs = async () => {
+
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/jobs`);
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/jobs`
+      );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch");
+        throw new Error("Failed");
       }
 
-      const data: unknown = await response.json();
+      const data = await response.json();
 
-      const jobsArray: Job[] = Array.isArray(data) ? data : [];
+      const jobsArray: Job[] =
+        Array.isArray(data) ? data : [];
 
-      const savedJobs: Job[] = jobsArray.map((job) => ({
+      const formatted = jobsArray.map(job => ({
         ...job,
         isSaved: true,
         isEditing: false
       }));
 
-      setJobs(savedJobs.length > 0 ? savedJobs : [{ ...emptyJob }]);
+      setJobs(
+        formatted.length > 0
+          ? formatted
+          : [{ ...emptyJob }]
+      );
+
       setStatus("Ready");
 
     } catch (err) {
-      console.error("Fetch Error:", err);
+
+      console.error(err);
+
       setJobs([{ ...emptyJob }]);
+
       setStatus("Server Offline");
     }
   };
 
   useEffect(() => {
-    console.log("API:", import.meta.env.VITE_API_URL);
     fetchJobs();
   }, []);
 
   // -------------------------
   // HANDLE CHANGE
   // -------------------------
-  const handleChange = (jobIndex: number, key: keyof Job, value: string) => {
+  const handleChange = (
+    jobIndex: number,
+    key: keyof Job,
+    value: string
+  ) => {
+
     setJobs(prev => {
+
       const updated = [...prev];
 
-      if (updated[jobIndex]?.isSaved && !updated[jobIndex]?.isEditing) {
+      const currentJob = updated[jobIndex];
+
+      if (!currentJob) return prev;
+
+      const locked =
+        currentJob.isSaved === true &&
+        currentJob.isEditing !== true;
+
+      if (locked) {
         return prev;
       }
 
@@ -188,27 +274,35 @@ const App = () => {
   };
 
   // -------------------------
-  // ADD COLUMN
+  // ADD JOB
   // -------------------------
   const addNewJob = () => {
-    setJobs(prev => [...prev, { ...emptyJob }]);
-    setStatus("Added new job column");
+
+    setJobs(prev => [
+      ...prev,
+      {
+        ...emptyJob,
+        isEditing: true,
+        isSaved: false
+      }
+    ]);
+
+    setStatus("New Job Added");
   };
 
   // -------------------------
   // TOGGLE EDIT
   // -------------------------
   const toggleEdit = (index: number) => {
+
     setJobs(prev => {
+
       const updated = [...prev];
-      const newEditState = !updated[index]?.isEditing;
 
       updated[index] = {
         ...updated[index],
-        isEditing: newEditState
+        isEditing: !updated[index].isEditing
       };
-
-      setStatus(newEditState ? "Unlocked for editing" : "Locked column");
 
       return updated;
     });
@@ -217,561 +311,943 @@ const App = () => {
   // -------------------------
   // DELETE JOB
   // -------------------------
-  const deleteJob = async (index: number) => {
+  const deleteJob = async (
+    index: number
+  ) => {
+
     const job = jobs[index];
+
     const jobId = job?._id || job?.id;
 
     if (!jobId) {
-      setJobs(prev => prev.filter((_, i) => i !== index));
-      setStatus("Removed column");
+
+      setJobs(prev =>
+        prev.filter((_, i) => i !== index)
+      );
+
       return;
     }
 
-    setStatus("Deleting...");
-
     try {
+
       const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/delete-job/${jobId}`,
-      {
-        method: "DELETE"
-      });
+        `${import.meta.env.VITE_API_URL}/delete-job/${jobId}`,
+        {
+          method: "DELETE"
+        }
+      );
 
       if (response.ok) {
-        setJobs(prev => prev.filter((_, i) => i !== index));
-        setStatus("Deleted from Database ✅");
-      } else {
-        setStatus("Delete failed: Record not found");
+
+        setJobs(prev =>
+          prev.filter((_, i) => i !== index)
+        );
+
+        setStatus("Deleted");
       }
 
-    } catch {
-      setStatus("Delete failed: Server error");
+    } catch (err) {
+
+      console.error(err);
+
+      setStatus("Delete Failed");
     }
   };
 
-
-
-
   // -------------------------
-  // SUBMIT
+  // SAVE
   // -------------------------
   const handleSubmit = async () => {
-    setStatus("Processing...");
-    let hasError = false;
 
-    const currentJobs = [...jobs];
-    const results: Job[] = [];
+    setStatus("Processing...");
 
     try {
+
+      const currentJobs = structuredClone(jobs);
+
+      const results: Job[] = [];
+
       for (let i = 0; i < currentJobs.length; i++) {
+
         const job = currentJobs[i];
 
-        if (job.isSaved && !job.isEditing) {
+        if (
+          job.isSaved &&
+          !job.isEditing
+        ) {
           results.push(job);
           continue;
         }
 
-        if (!job.title || !job.location || !job.type) {
-          setStatus(`Error: Job ${i + 1} incomplete`);
-          hasError = true;
-          break;
+        if (
+          !job.title ||
+          !job.location ||
+          !job.type
+        ) {
+          setStatus(`Job ${i + 1} incomplete`);
+          return;
         }
 
-        const jobId = job._id || job.id;
+        const jobId =
+          job._id || job.id;
+
         const isUpdate = !!jobId;
 
         const url = isUpdate
-  ? `${import.meta.env.VITE_API_URL}/update-job/${jobId}`
-  : `${import.meta.env.VITE_API_URL}/add-job`;
+          ? `${import.meta.env.VITE_API_URL}/update-job/${jobId}`
+          : `${import.meta.env.VITE_API_URL}/add-job`;
 
-        const method = isUpdate ? "PUT" : "POST";
+        const method =
+          isUpdate ? "PUT" : "POST";
 
-        const { isSaved, isEditing, ...jobData } = job;
+        const {
+          isSaved,
+          isEditing,
+          ...jobData
+        } = job;
 
         const response = await fetch(url, {
           method,
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json"
+          },
           body: JSON.stringify(jobData)
         });
 
         if (!response.ok) {
-          console.warn(`Job ${i + 1} failed`);
-          hasError = true;
-          continue; // skip instead of crash
+          continue;
         }
 
         let savedJob: any = {};
 
         try {
           savedJob = await response.json();
-        } catch {
-          savedJob = {};
-        }
+        } catch {}
 
         results.push({
-          ...job, // fallback safe
+          ...job,
           ...savedJob,
-          _id: savedJob._id || job._id || savedJob.id,
+          _id:
+            savedJob._id ||
+            job._id ||
+            savedJob.id,
+
           isSaved: true,
           isEditing: false
         });
       }
 
-      if (!hasError) {
-        setJobs(results);
-        setStatus("All changes synchronized ✅");
-      }
+      setJobs(results);
+
+      setStatus("Saved Successfully ✅");
 
     } catch (err) {
-      console.error("Submit Error:", err);
-      setStatus("Sync Failed: Check server logs");
+
+      console.error(err);
+
+      setStatus("Save Failed");
     }
   };
 
   // -------------------------
   // FORMULA BAR
   // -------------------------
-  const getFormulaValue = (): string => {
+  const getFormulaValue = () => {
+
     if (!activeCell) return "";
 
-    const { rowIdx, colIdx } = activeCell;
-    const fieldKey = fields[rowIdx]?.key;
+    const { rowIdx, colIdx } =
+      activeCell;
 
-    return (jobs[colIdx]?.[fieldKey] ?? "") as string;
+    const fieldKey =
+      fields[rowIdx]?.key;
+
+    return (
+      jobs[colIdx]?.[fieldKey] ?? ""
+    ) as string;
   };
 
+  // -------------------------
+  // FILTER
+  // -------------------------
   const filteredJobs = jobs.filter(job => {
+
     return (
-      (job.title || "").toLowerCase().includes(filters.title.toLowerCase()) &&
-      (job.location || "").toLowerCase().includes(filters.location.toLowerCase()) &&
-      (job.education || "").toLowerCase().includes(filters.education.toLowerCase()) &&
-      (filters.type === "" || job.type === filters.type)
+
+      (job.title || "")
+        .toLowerCase()
+        .includes(filters.title.toLowerCase())
+
+      &&
+
+      (job.location || "")
+        .toLowerCase()
+        .includes(filters.location.toLowerCase())
+
+      &&
+
+      (job.education || "")
+        .toLowerCase()
+        .includes(filters.education.toLowerCase())
+
+      &&
+
+      (
+        filters.type === "" ||
+        job.type === filters.type
+      )
     );
   });
 
-
-
   return (
-    // <Layout>
+
     <div className="w-full h-full flex flex-col">
-      {/* <div className="flex flex-col h-full min-h-0 bg-[#f3f3f3] text-sm font-sans select-none overflow-hidden"> */}
-<div className="w-full flex justify-center relative overflow-hidden rounded-[2.5rem] border border-white/10 shadow-2xl h-auto">
 
-  {/* 🌑 BACKGROUND */}
-  <div className="absolute inset-0 bg-gradient-to-b from-[#020617] via-[#0f172a] to-[#e2e8f0]" />
+      <div className="w-full flex justify-center relative overflow-hidden rounded-[2.5rem] border border-white/10 shadow-2xl h-auto">
 
-  {/* ✨ LIGHT */}
-  <div className="absolute bottom-0 w-full h-[50%] bg-gradient-to-t from-white/60 via-white/20 to-transparent blur-[80px]" />
+        {/* BACKGROUND */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#020617] via-[#0f172a] to-[#e2e8f0]" />
 
-  {/* 🔥 BLOBS */}
-  <div className="absolute inset-0 pointer-events-none">
-    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/10 blur-[120px] rounded-full" />
-    <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full" />
-  </div>
+        <div className="absolute bottom-0 w-full h-[50%] bg-gradient-to-t from-white/60 via-white/20 to-transparent blur-[80px]" />
 
-  {/* ✅ THIS WAS MISSING */}
-  <div className="relative z-10 w-full p-4 md:p-6 flex flex-col h-auto">
-    
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/10 blur-[120px] rounded-full" />
 
-    {/* ✅ OPTIONAL (GLASS BOX FOR EXCEL) */}
-    <div className="mt-0 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl border border-white/40 flex flex-col h-auto">
-      {/* 👉 YOUR FULL EXISTING CODE (NO CHANGE) */}
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full" />
+        </div>
 
-        {/* Top Excel Bar */}
-        <div className="bg-[#217346] flex items-center px-3 py-2 text-white justify-between flex-wrap">
-            <div className="flex items-center gap-3">
+        {/* MAIN */}
+        <div className="relative z-10 w-full p-4 md:p-6 flex flex-col h-auto">
+
+          <div className="mt-0 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl border border-white/40 flex flex-col h-auto">
+
+            {/* TOP BAR */}
+            <div className="bg-[#217346] flex items-center px-3 py-2 text-white justify-between flex-wrap">
+
+              <div className="flex items-center gap-3">
                 <FileSpreadsheet size={18} />
+
                 <span className="font-semibold text-sm">
-                Candid_Contacts_Manager.xlsx
-                </span>
-            </div>
-            <h2 className="text-xs opacity-80">Powered by yuktic.com</h2>
-        </div>
-
-        {/* Ribbon Menu */}
-        <div className="bg-white border-b border-gray-200 flex flex-col shrink-0">
-          <div className="flex gap-6 px-4 pt-2 text-[11px] font-medium text-gray-600">
-            <span className="text-[#217346] border-b-[3px] border-[#217346] cursor-pointer pb-1 font-bold">Job List</span>
-
-          </div>
-
-          <div className="flex items-center gap-2 p-1 bg-[#f9f9f9] border-t border-gray-200">
-            <div className="grid grid-cols-3 gap-2 px-2 border-r border-gray-300 w-full md:w-auto">
-              <div
-                className="flex flex-col items-center justify-center h-[55px] w-full cursor-pointer hover:bg-gray-200 rounded text-center"
-                onClick={() => setShowFilter(prev => !prev)}
-              >
-                <FileText size={20} className="text-[#217346]" />
-                <span className="text-[9px] text-gray-500 mt-1">Filter</span>
-              </div>
-              <div
-                className="flex flex-col items-center justify-center h-[55px] w-full cursor-pointer hover:bg-gray-200 rounded text-center"
-                onClick={addNewJob}
-              >
-                <Plus size={18} className="text-[#217346]" />
-                <span className="text-[9px] text-gray-500 leading-tight mt-1">
-                  Add Job
+                  Candid_Contacts_Manager.xlsx
                 </span>
               </div>
 
-              <div
-                className="flex flex-col items-center justify-center h-[55px] w-full cursor-pointer hover:bg-gray-200 rounded text-center"
-                onClick={handleSubmit}
-              >
-                <Save size={18} className="text-[#217346]" />
-                <span className="text-[9px] text-gray-500 leading-tight mt-1">
-                  Commit All
+              <h2 className="text-xs opacity-80">
+                Powered by yuktic.com
+              </h2>
+            </div>
+
+            {/* RIBBON */}
+            <div className="bg-white border-b border-gray-200 flex flex-col shrink-0">
+
+              <div className="flex gap-6 px-4 pt-2 text-[11px] font-medium text-gray-600">
+
+                <span className="text-[#217346] border-b-[3px] border-[#217346] cursor-pointer pb-1 font-bold">
+                  Job List
                 </span>
               </div>
-            </div>
-            <div className="w-full md:w-auto flex justify-center md:justify-start mt-1 md:mt-0">
-              <div className="flex items-center gap-1 text-gray-400 text-center md:text-left">
-                <Grid size={14} />
-                <span className="text-[10px] leading-tight">
-                  Connected to MongoDB
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Formula Bar */}
-        <div className="flex items-center bg-white border-b border-gray-300 px-1 py-0.5 gap-1 shrink-0">
-          <div className="w-16 text-center text-gray-700 font-sans text-xs bg-gray-50 border border-gray-200 py-0.5">
-            {activeCell ? `${String.fromCharCode(66 + activeCell.colIdx)}${activeCell.rowIdx + 1}` : 'A1'}
-          </div>
-          <div className="h-5 w-[1px] bg-gray-300 mx-1"></div>
-          <div className="text-gray-400 italic px-2 font-serif font-bold text-sm">fx</div>
-          <input
-            className="flex-1 outline-none text-[12px] py-1 px-2 bg-transparent"
-            value={getFormulaValue()}
-            readOnly
-          />
+              {/* TOOLBAR */}
+              <div className="flex items-center gap-2 p-1 bg-[#f9f9f9] border-t border-gray-200">
 
+                <div className="grid grid-cols-3 gap-2 px-2 border-r border-gray-300 w-full md:w-auto">
 
-          {showFilter && (
-                    <div className="hidden md:flex items-center gap-2 ml-auto">
-
-              <input
-                type="text"
-                placeholder="Job Title"
-                className="border px-1 py-1 text-xs"
-                value={filters.title}
-                onChange={(e) => setFilters({ ...filters, title: e.target.value })}
-              />
-
-              <input
-                type="text"
-                placeholder="Location"
-                className="border px-2 py-1 text-xs"
-                value={filters.location}
-                onChange={(e) => setFilters({ ...filters, location: e.target.value })}
-              />
-
-              <input
-                type="text"
-                placeholder="Education"
-                className="border px-2 py-1 text-xs"
-                value={filters.education}
-                onChange={(e) => setFilters({ ...filters, education: e.target.value })}
-              />
-
-              <select
-                className="border px-2 py-1 text-[10px]"
-                value={filters.type}
-                onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-              >
-                <option value="">All Types</option>
-                <option value="Full-Time">Full-Time</option>
-                <option value="Part-Time">Part-Time</option>
-                <option value="Internship">Internship</option>
-              </select>
-
-              <button
-                className="bg-red-500 text-white px-3 py-1 text-xs rounded"
-                onClick={() =>
-                  setFilters({
-                    title: "",
-                    location: "",
-                    education: "",
-                    type: ""
-                  })
-                }
-              >
-                Clear
-              </button>
-
-            </div>
-          )}
-        </div>
-
-        {/* Grid Canvas */}
-        {/* ✅ MOBILE FILTER PANEL */}
-        {showFilter && (
-          <div className="md:hidden bg-white border-b border-gray-300 p-3 space-y-2">
-
-            <input
-              type="text"
-              placeholder="Job Title"
-              className="w-full border px-3 py-2 text-xs rounded"
-              value={filters.title}
-              onChange={(e) => setFilters({ ...filters, title: e.target.value })}
-            />
-
-            <input
-              type="text"
-              placeholder="Location"
-              className="w-full border px-3 py-2 text-xs rounded"
-              value={filters.location}
-              onChange={(e) => setFilters({ ...filters, location: e.target.value })}
-            />
-
-            <input
-              type="text"
-              placeholder="Education"
-              className="w-full border px-3 py-2 text-xs rounded"
-              value={filters.education}
-              onChange={(e) => setFilters({ ...filters, education: e.target.value })}
-            />
-
-            <select
-              className="w-full border px-3 py-2 text-xs rounded"
-              value={filters.type}
-              onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-            >
-              <option value="">All Types</option>
-              <option value="Full-Time">Full-Time</option>
-              <option value="Part-Time">Part-Time</option>
-              <option value="Internship">Internship</option>
-            </select>
-
-            <button
-              className="w-full bg-red-500 text-white py-2 text-xs rounded"
-              onClick={() =>
-                setFilters({
-                  title: "",
-                  location: "",
-                  education: "",
-                  type: ""
-                })
-              }
-            >
-              Clear Filters
-            </button>
-          </div>
-        )}
-
-
-        
-        <div className="overflow-auto bg-[#f3f3f3]">
-          <table className="border-separate border-spacing-0  w-max min-w-full">
-            <thead className="sticky top-0 z-20">
-              <tr className="h-6">
-
-                {/* Empty corner (top-left like Excel) */}
-              <th className="w-10 bg-[#e6e6e6] border-r border-b border-gray-300 sticky left-0 z-40"></th>
-
-
-                {/* Column A (Property column) */}
-              <th className="w-[300px] bg-[#e6e6e6] border-r border-b border-gray-300 text-center text-[11px] font-medium text-gray-600 sticky left-[40px] z-40">                  A
-                </th>
-
-
-                {/* Dynamic columns → B, C, D... */}
-                {filteredJobs.map((_, i) => (
-                  <th
-                    key={`col-${i}`}
-                    className="w-[280px] bg-[#e6e6e6] border-r border-b border-gray-300 text-center text-[11px] font-medium text-gray-600"
+                  {/* FILTER */}
+                  <div
+                    className="flex flex-col items-center justify-center h-[55px] w-full cursor-pointer hover:bg-gray-200 rounded text-center"
+                    onClick={() =>
+                      setShowFilter(prev => !prev)
+                    }
                   >
-                    {String.fromCharCode(66 + i)} {/* B, C, D... */}
-                  </th>
-                ))}
-              </tr>
+                    <FileText
+                      size={20}
+                      className="text-[#217346]"
+                    />
 
+                    <span className="text-[9px] text-gray-500 mt-1">
+                      Filter
+                    </span>
+                  </div>
 
-              <tr className="h-5">
-                <th className="w-10 bg-[#e6e6e6] border-r border-b border-gray-300 sticky left-0 z-40"></th>
+                  {/* ADD */}
+                  <div
+                    className="flex flex-col items-center justify-center h-[55px] w-full cursor-pointer hover:bg-gray-200 rounded text-center"
+                    onClick={addNewJob}
+                  >
+                    <Plus
+                      size={18}
+                      className="text-[#217346]"
+                    />
 
-              <th className="w-[300px] bg-[#e6e6e6] border-r border-b border-gray-300 text-[11px] font-normal text-gray-600 uppercase italic md:sticky md:left-[40px] z-30">                  Property (A)
-                </th>
+                    <span className="text-[9px] text-gray-500 leading-tight mt-1">
+                      Add Job
+                    </span>
+                  </div>
 
-                {filteredJobs.map((job, i) => {
-                  const actualIndex =
-                    job._id || job.id
-                      ? jobs.findIndex(j => (j._id || j.id) === (job._id || job.id))
-                      : i;
+                  {/* SAVE */}
+                  <div
+                    className="flex flex-col items-center justify-center h-[55px] w-full cursor-pointer hover:bg-gray-200 rounded text-center"
+                    onClick={handleSubmit}
+                  >
+                    <Save
+                      size={18}
+                      className="text-[#217346]"
+                    />
 
-                  return (
-                    <th
-                      key={`head-${i}`}
-                      className={`w-[280px] border-r border-b border-gray-300 text-[11px] font-normal transition-colors relative group ${job.isSaved && !job.isEditing
-                        ? "bg-gray-200 text-gray-500"
-                        : "bg-[#e6e6e6] text-[#217346] font-bold"
-                        }`}
-                    >
-                      <div className="flex items-center justify-between px-2 py-1">
+                    <span className="text-[9px] text-gray-500 leading-tight mt-1">
+                      Save All
+                    </span>
+                  </div>
+                </div>
 
-                        {/* LEFT SIDE */}
-                        <div className="flex items-center gap-2">
-                          {job.isSaved && !job.isEditing ? (
-                            <Lock size={15} />
-                          ) : (
-                            <Unlock size={15} />
-                          )}
-                          <span>Job {i + 1}</span>
+                {/* DB STATUS */}
+                <div className="w-full md:w-auto flex justify-center md:justify-start mt-1 md:mt-0">
 
-                          {job.isSaved && !job.isEditing && (
-                            <CheckCircle2 size={12} className="text-[#217346]" />
-                          )}
-                        </div>
+                  <div className="flex items-center gap-1 text-gray-400 text-center md:text-left">
 
-                        {/* RIGHT SIDE */}
-                        <div className="flex items-center gap-2">
+                    <Grid size={14} />
 
-                          {job.isSaved && (
-                            <button
-                              onClick={() => toggleEdit(actualIndex)}
-                              className={`text-[10px] px-4 py-1 rounded border transition-colors ${job.isEditing
-                                ? "bg-[#217346] text-white border-[#217346]"
-                                : "bg-white text-gray-600 border-gray-300 hover:bg-gray-100"
-                                }`}
-                            >
-                              {job.isEditing ? "Editing..." : "Edit"}
-                            </button>
-                          )}
+                    <span className="text-[10px] leading-tight">
+                      Connected to MongoDB
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-                          <button
-                            onClick={() => setDeleteIndex(actualIndex)}
-                            className="text-red-600 hover:text-red-800 transition-colors p-1 rounded-md hover:bg-red-50"
-                            title="Delete Job"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+            {/* FORMULA BAR */}
+            <div className="flex items-center bg-white border-b border-gray-300 px-1 py-0.5 gap-1 shrink-0">
 
-                        </div>
-                      </div>
+              <div className="w-16 text-center text-gray-700 font-sans text-xs bg-gray-50 border border-gray-200 py-0.5">
+
+                {activeCell
+                  ? `${String.fromCharCode(
+                      66 + activeCell.colIdx
+                    )}${activeCell.rowIdx + 1}`
+                  : "A1"}
+              </div>
+
+              <div className="h-5 w-[1px] bg-gray-300 mx-1"></div>
+
+              <div className="text-gray-400 italic px-2 font-serif font-bold text-sm">
+                fx
+              </div>
+
+              <input
+                className="flex-1 outline-none text-[12px] py-1 px-2 bg-transparent"
+                value={getFormulaValue()}
+                readOnly
+              />
+
+              {/* FILTERS DESKTOP */}
+              {showFilter && (
+
+                <div className="hidden md:flex items-center gap-2 ml-auto">
+
+                  <input
+                    type="text"
+                    placeholder="Job Title"
+                    className="border px-2 py-1 text-xs"
+                    value={filters.title}
+                    onChange={(e) =>
+                      setFilters({
+                        ...filters,
+                        title: e.target.value
+                      })
+                    }
+                  />
+
+                  <input
+                    type="text"
+                    placeholder="Location"
+                    className="border px-2 py-1 text-xs"
+                    value={filters.location}
+                    onChange={(e) =>
+                      setFilters({
+                        ...filters,
+                        location: e.target.value
+                      })
+                    }
+                  />
+
+                  <input
+                    type="text"
+                    placeholder="Education"
+                    className="border px-2 py-1 text-xs"
+                    value={filters.education}
+                    onChange={(e) =>
+                      setFilters({
+                        ...filters,
+                        education: e.target.value
+                      })
+                    }
+                  />
+
+                  <select
+                    className="border px-2 py-1 text-[10px]"
+                    value={filters.type}
+                    onChange={(e) =>
+                      setFilters({
+                        ...filters,
+                        type: e.target.value
+                      })
+                    }
+                  >
+                    <option value="">
+                      All Types
+                    </option>
+
+                    <option value="Full-Time">
+                      Full-Time
+                    </option>
+
+                    <option value="Part-Time">
+                      Part-Time
+                    </option>
+
+                    <option value="Internship">
+                      Internship
+                    </option>
+                  </select>
+
+                  <button
+                    className="bg-red-500 text-white px-3 py-1 text-xs rounded"
+                    onClick={() =>
+                      setFilters({
+                        title: "",
+                        location: "",
+                        education: "",
+                        type: ""
+                      })
+                    }
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* MOBILE FILTER */}
+            {showFilter && (
+
+              <div className="md:hidden bg-white border-b border-gray-300 p-3 space-y-2">
+
+                <input
+                  type="text"
+                  placeholder="Job Title"
+                  className="w-full border px-3 py-2 text-xs rounded"
+                  value={filters.title}
+                  onChange={(e) =>
+                    setFilters({
+                      ...filters,
+                      title: e.target.value
+                    })
+                  }
+                />
+
+                <input
+                  type="text"
+                  placeholder="Location"
+                  className="w-full border px-3 py-2 text-xs rounded"
+                  value={filters.location}
+                  onChange={(e) =>
+                    setFilters({
+                      ...filters,
+                      location: e.target.value
+                    })
+                  }
+                />
+
+                <input
+                  type="text"
+                  placeholder="Education"
+                  className="w-full border px-3 py-2 text-xs rounded"
+                  value={filters.education}
+                  onChange={(e) =>
+                    setFilters({
+                      ...filters,
+                      education: e.target.value
+                    })
+                  }
+                />
+
+                <select
+                  className="w-full border px-3 py-2 text-xs rounded"
+                  value={filters.type}
+                  onChange={(e) =>
+                    setFilters({
+                      ...filters,
+                      type: e.target.value
+                    })
+                  }
+                >
+                  <option value="">
+                    All Types
+                  </option>
+
+                  <option value="Full-Time">
+                    Full-Time
+                  </option>
+
+                  <option value="Part-Time">
+                    Part-Time
+                  </option>
+
+                  <option value="Internship">
+                    Internship
+                  </option>
+                </select>
+
+                <button
+                  className="w-full bg-red-500 text-white py-2 text-xs rounded"
+                  onClick={() =>
+                    setFilters({
+                      title: "",
+                      location: "",
+                      education: "",
+                      type: ""
+                    })
+                  }
+                >
+                  Clear Filters
+                </button>
+              </div>
+            )}
+
+            {/* TABLE */}
+            <div className="overflow-auto bg-[#f3f3f3]">
+
+              <table className="border-separate border-spacing-0 w-max min-w-full">
+
+                <thead className="sticky top-0 z-20">
+
+                  {/* LETTERS */}
+                  <tr className="h-6">
+
+                    <th className="w-10 bg-[#e6e6e6] border-r border-b border-gray-300 sticky left-0 z-40"></th>
+
+                    <th className="w-[300px] bg-[#e6e6e6] border-r border-b border-gray-300 text-center text-[11px] font-medium text-gray-600 sticky left-[40px] z-40">
+                      A
                     </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            
-            <tbody>
-              {fields.map((field, rowIdx) => (
-              <tr key={field.key}>                  
-                                <td className="bg-[#e6e6e6] border-r border-b border-gray-300 text-center text-[10px] text-gray-500 font-medium sticky left-0 z-30">
-                                  {rowIdx + 1}
-                                </td>
-              <td className="w-[300px] border-r border-b border-gray-200 bg-[#f9f9f9] px-4 text-[12px] text-gray-700 font-medium whitespace-nowrap md:sticky md:left-[40px] z-20 text-left">                    {field.label}
-                  </td>
 
-                  {filteredJobs.map((job, colIdx) => {
-                    const actualIndex =
-                      job._id || job.id
-                        ? jobs.findIndex(j => (j._id || j.id) === (job._id || job.id))
-                        : colIdx;
+                    {filteredJobs.map((_, i) => (
 
-                    const isLocked = job.isSaved && !job.isEditing;
-
-                    const isActive =
-                      activeCell?.rowIdx === rowIdx &&
-                      activeCell?.colIdx === actualIndex;
-
-
-                    return (
-                      <td
-                        key={`${rowIdx}-${colIdx}`}
-                        className={`border-r border-b border-gray-200 relative p-0 transition-all ${isLocked ? 'bg-gray-50' : 'bg-white'} ${isActive ? 'ring-2 ring-inset ring-[#217346] z-10' : ''}`}
-                        onClick={() => setActiveCell({ rowIdx, colIdx: actualIndex })}
+                      <th
+                        key={`col-${i}`}
+                        className="w-[280px] bg-[#e6e6e6] border-r border-b border-gray-300 text-center text-[11px] font-medium text-gray-600"
                       >
-                        {field.type === 'select' ? (
-                          <div className="flex items-center w-full">
-                            <select
-                              className={`w-full px-3 py-2 text-xs bg-transparent appearance-none ${isLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
-                              value={(job[field.key] ?? "") as string}
-                              disabled={isLocked}
-                              onChange={(e) => handleChange(actualIndex, field.key, e.target.value)}
-                            >
-                              <option value="">Select</option>
-                              {field.options?.map(opt => (
-                                <option key={opt} value={opt}>{opt}</option>
-                              ))}
-                            </select>
+                        {String.fromCharCode(66 + i)}
+                      </th>
+                    ))}
+                  </tr>
 
-                            {!isLocked && (
-                              <ChevronDown
-                                size={10}
-                                className="absolute right-2 text-gray-400 pointer-events-none"
+                  {/* JOB HEADERS */}
+                  <tr className="h-5">
+
+                    <th className="w-10 bg-[#e6e6e6] border-r border-b border-gray-300 sticky left-0 z-40"></th>
+
+                    <th className="w-[300px] bg-[#e6e6e6] border-r border-b border-gray-300 text-[11px] font-normal text-gray-600 uppercase italic md:sticky md:left-[40px] z-30">
+                      Property (A)
+                    </th>
+
+                    {filteredJobs.map((job, i) => {
+
+                      const actualIndex =
+                        jobs.findIndex(
+                          j =>
+                            (j._id || j.id) ===
+                            (job._id || job.id)
+                        );
+
+                      if (actualIndex === -1) {
+                        return null;
+                      }
+
+                      return (
+
+                        <th
+                          key={`head-${actualIndex}`}
+                          className={`w-[280px] border-r border-b border-gray-300 text-[11px] font-normal transition-colors relative group ${
+                            job.isSaved &&
+                            !job.isEditing
+                              ? "bg-gray-200 text-gray-500"
+                              : "bg-[#e6e6e6] text-[#217346] font-bold"
+                          }`}
+                        >
+
+                          <div className="flex items-center justify-between px-2 py-1">
+
+                            {/* LEFT */}
+                            <div className="flex items-center gap-2">
+
+                              {job.isSaved &&
+                              !job.isEditing ? (
+                                <Lock size={15} />
+                              ) : (
+                                <Unlock size={15} />
+                              )}
+
+                              <span>
+                                Job {i + 1}
+                              </span>
+
+                              {job.isSaved &&
+                                !job.isEditing && (
+                                  <CheckCircle2
+                                    size={12}
+                                    className="text-[#217346]"
+                                  />
+                              )}
+                            </div>
+
+                            {/* RIGHT */}
+                            <div className="flex items-center gap-2">
+
+                              {job.isSaved && (
+
+                                <button
+                                  onClick={() =>
+                                    toggleEdit(actualIndex)
+                                  }
+                                  className={`text-[10px] px-4 py-1 rounded border transition-colors ${
+                                    job.isEditing
+                                      ? "bg-[#217346] text-white border-[#217346]"
+                                      : "bg-white text-gray-600 border-gray-300 hover:bg-gray-100"
+                                  }`}
+                                >
+                                  {job.isEditing
+                                    ? "Editing..."
+                                    : "Edit"}
+                                </button>
+                              )}
+
+                              <button
+                                onClick={() =>
+                                  setDeleteIndex(actualIndex)
+                                }
+                                className="text-red-600 hover:text-red-800 transition-colors p-1 rounded-md hover:bg-red-50"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+
+                          </div>
+                        </th>
+                      );
+                    })}
+                  </tr>
+                </thead>
+
+                <tbody>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                  {fields.map((field, rowIdx) => (
+
+                    <tr key={field.key}>
+
+                      {/* ROW NUMBER */}
+                      <td className="bg-[#e6e6e6] border-r border-b border-gray-300 text-center text-[10px] text-gray-500 font-medium sticky left-0 z-30">
+                        {rowIdx + 1}
+                      </td>
+
+                      {/* PROPERTY NAME */}
+                      <td className="w-[300px] border-r border-b border-gray-200 bg-[#f9f9f9] px-4 text-[12px] text-gray-700 font-medium whitespace-nowrap md:sticky md:left-[40px] z-20 text-left">
+                        {field.label}
+                      </td>
+
+                      {/* JOB CELLS */}
+                      {filteredJobs.map((job, colIdx) => {
+
+                        const actualIndex =
+                          jobs.findIndex(
+                            j =>
+                              (j._id || j.id) ===
+                              (job._id || job.id)
+                          );
+
+                        if (actualIndex === -1) {
+                          return null;
+                        }
+
+                        const originalJob =
+                          jobs[actualIndex];
+
+                        const isLocked =
+                          originalJob?.isSaved &&
+                          !originalJob?.isEditing;
+
+                        const isActive =
+                          activeCell?.rowIdx === rowIdx &&
+                          activeCell?.colIdx === actualIndex;
+
+                        return (
+
+                          <td
+                            key={`${rowIdx}-${actualIndex}`}
+                            className={`
+                              border-r
+                              border-b
+                              border-gray-200
+                              relative
+                              p-0
+                              transition-all
+
+                              ${isLocked
+                                ? "bg-gray-50"
+                                : "bg-white"}
+
+                              ${isActive
+                                ? "ring-2 ring-inset ring-[#217346] z-10"
+                                : ""}
+                            `}
+                            onClick={() =>
+                              setActiveCell({
+                                rowIdx,
+                                colIdx: actualIndex
+                              })
+                            }
+                          >
+
+                            {/* SELECT */}
+                            {field.type === "select" ? (
+
+                              <div className="flex items-center w-full">
+
+                                <select
+                                  className={`
+                                    w-full
+                                    px-3
+                                    py-2
+                                    text-xs
+                                    bg-transparent
+                                    appearance-none
+
+                                    ${isLocked
+                                      ? "cursor-not-allowed opacity-60"
+                                      : "cursor-pointer"}
+                                  `}
+                                  value={
+                                    (jobs[actualIndex]?.[
+                                      field.key
+                                    ] ?? "") as string
+                                  }
+                                  disabled={isLocked}
+                                  onChange={(e) =>
+                                    handleChange(
+                                      actualIndex,
+                                      field.key,
+                                      e.target.value
+                                    )
+                                  }
+                                >
+                                  <option value="">
+                                    Select
+                                  </option>
+
+                                  {field.options?.map(opt => (
+
+                                    <option
+                                      key={opt}
+                                      value={opt}
+                                    >
+                                      {opt}
+                                    </option>
+                                  ))}
+                                </select>
+
+                                {!isLocked && (
+
+                                  <ChevronDown
+                                    size={10}
+                                    className="absolute right-2 text-gray-400 pointer-events-none"
+                                  />
+                                )}
+                              </div>
+
+                            ) : field.isTextarea ? (
+
+                              /* DESCRIPTION */
+                              <div
+                                onClick={() => {
+
+                                  if (isLocked) return;
+
+                                  setModalText(
+                                    (job[field.key] ?? "") as string
+                                  );
+
+                                  setDescriptionModal({
+                                    open: true,
+                                    jobIndex: actualIndex,
+                                    fieldKey: field.key
+                                  });
+                                }}
+                                className={`
+                                  w-full
+                                  h-[48px]
+                                  px-3
+                                  py-2
+                                  text-xs
+                                  flex
+                                  items-start
+                                  overflow-hidden
+                                  cursor-pointer
+                                  transition-all
+
+                                  ${isLocked
+                                    ? "bg-gray-50 text-gray-400"
+                                    : "bg-white hover:bg-[#f0fdf4]"}
+                                `}
+                              >
+
+                                <span className="line-clamp-2 leading-relaxed">
+
+                                  {(job[field.key] ?? "") as string ||
+                                    field.placeholder}
+                                </span>
+                              </div>
+
+                            ) : (
+
+                              /* NORMAL INPUT */
+                              <input
+                                type="text"
+                                className={`
+                                  w-full
+                                  px-3
+                                  py-2
+                                  text-xs
+                                  bg-transparent
+                                  outline-none
+
+                                  ${isLocked
+                                    ? "cursor-not-allowed text-gray-400 italic"
+                                    : ""}
+                                `}
+                                placeholder={
+                                  isLocked
+                                    ? ""
+                                    : field.placeholder
+                                }
+                                value={
+                                  (jobs[actualIndex]?.[
+                                    field.key
+                                  ] ?? "") as string
+                                }
+                                disabled={isLocked}
+                                onFocus={() =>
+                                  setActiveCell({
+                                    rowIdx,
+                                    colIdx: actualIndex
+                                  })
+                                }
+                                onChange={(e) =>
+                                  handleChange(
+                                    actualIndex,
+                                    field.key,
+                                    e.target.value
+                                  )
+                                }
                               />
                             )}
-                          </div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-                        ) : field.isTextarea ? (
-                          <textarea
-                            className={`w-full h-[34px] p-2 outline-none resize-none text-xs leading-tight bg-transparent ${isLocked ? 'cursor-not-allowed text-gray-400 italic' : ''}`}
-                            placeholder={isLocked ? "" : field.placeholder}
-                            value={(job[field.key] ?? "") as string}
-                            disabled={isLocked}
-                            onFocus={() => setActiveCell({ rowIdx, colIdx: actualIndex })}
-                            onChange={(e) => handleChange(actualIndex, field.key, e.target.value)}
-                          />
+            {/* FOOTER */}
+            <div
+              className={`
+                text-white
+                px-3
+                py-1
+                flex
+                items-center
+                justify-between
+                text-[11px]
+                shrink-0
+                transition-colors
 
-                        ) : (
-                          <input
-                            type="text"
-                            className={`w-full px-3 py-2 text-xs bg-transparent outline-none ${isLocked ? 'cursor-not-allowed text-gray-400 italic' : ''}`}
-                            placeholder={isLocked ? "" : field.placeholder}
-                            value={(job[field.key] ?? "") as string}
-                            disabled={isLocked}
-                            onFocus={() => setActiveCell({ rowIdx, colIdx: actualIndex })}
-                            onChange={(e) => handleChange(actualIndex, field.key, e.target.value)}
-                          />
-                        )}
-                      </td>
-                    );
-                  })}
-                  {/* <td className="border-b border-gray-200 bg-white"></td> */}
-                </tr>
-              ))}
+                ${
+                  status.includes("Error") ||
+                  status.includes("Failed") ||
+                  status.includes("Offline")
+                    ? "bg-red-600"
+                    : "bg-[#217346]"
+                }
+              `}
+            >
 
-              {/* Filler rows */}
-              {/* {[...Array(10)].map((_, i) => (
-              <tr key={`filler-${i}`} className="h-8">
-                <td className="bg-[#e6e6e6] border-r border-b border-gray-300 text-center text-[10px] text-gray-500 sticky left-0 z-10">{fields.length + i + 1}</td>
-                <td className="border-r border-b border-gray-200 bg-[#f9f9f9]"></td>
-                {jobs.map((_, j) => <td key={`filler-cell-${j}`} className="border-r border-b border-gray-200 bg-white"></td>)}
-                <td className="border-b border-gray-200 bg-white"></td>
-              </tr>
-            ))} */}
-            </tbody>
-          </table>
-        </div>
+              <div className="flex items-center gap-4">
 
-        {/* Footer / Status Bar */}
-        <div className={`text-white px-3 py-1 flex items-center justify-between text-[11px] shrink-0 transition-colors ${status.includes('Error') || status.includes('Failed') || status.includes('Offline') ? 'bg-red-600' : 'bg-[#217346]'}`}>
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${status === "Ready" || status.includes('✅') ? "bg-white" : "bg-yellow-400 animate-pulse"}`}></div>
-              {status}
-            </span>
-            <div className="w-[1px] h-3 bg-white/30"></div>
-            <span className="opacity-80 uppercase tracking-tighter font-bold">Mode: Sync</span>
-          </div>
-          <div className="flex items-center gap-5">
-            
-            <div className="flex items-center gap-2 font-mono">
-              <Unlock size={10} className="opacity-80" />
-              <span>{jobs.length} RECORDS</span>
+                <span className="flex items-center gap-2">
+
+                  <div
+                    className={`
+                      w-2 h-2 rounded-full
+
+                      ${
+                        status === "Ready" ||
+                        status.includes("✅")
+                          ? "bg-white"
+                          : "bg-yellow-400 animate-pulse"
+                      }
+                    `}
+                  ></div>
+
+                  {status}
+                </span>
+
+                <div className="w-[1px] h-3 bg-white/30"></div>
+
+                <span className="opacity-80 uppercase tracking-tighter font-bold">
+                  Mode: Sync
+                </span>
+              </div>
+
+              <div className="flex items-center gap-5">
+
+                <div className="flex items-center gap-2 font-mono">
+
+                  <Unlock
+                    size={10}
+                    className="opacity-80"
+                  />
+
+                  <span>
+                    {jobs.length} RECORDS
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
-
         </div>
-
       </div>
-          </div> 
-  </div>  
-     
 
+      {/* DELETE MODAL */}
       {deleteIndex !== null && (
+
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 
           <div className="bg-white rounded-lg shadow-xl p-5 w-[320px]">
@@ -781,14 +1257,26 @@ const App = () => {
             </h2>
 
             <p className="text-xs text-gray-700 mb-3">
-              This action will permanently remove this job from the <b>CandidRP website</b>.
+              This action will permanently remove this job from the
+              <b> CandidRP website</b>.
             </p>
 
-            {/* Job Details */}
             <div className="text-xs bg-gray-50 border rounded p-2 mb-4">
-              <p><b>Title:</b> {jobs[deleteIndex]?.title || "N/A"}</p>
-              <p><b>Location:</b> {jobs[deleteIndex]?.location || "N/A"}</p>
-              <p><b>Type:</b> {jobs[deleteIndex]?.type || "N/A"}</p>
+
+              <p>
+                <b>Title:</b>{" "}
+                {jobs[deleteIndex]?.title || "N/A"}
+              </p>
+
+              <p>
+                <b>Location:</b>{" "}
+                {jobs[deleteIndex]?.location || "N/A"}
+              </p>
+
+              <p>
+                <b>Type:</b>{" "}
+                {jobs[deleteIndex]?.type || "N/A"}
+              </p>
             </div>
 
             <p className="text-xs text-red-500 mb-4 font-medium">
@@ -796,9 +1284,12 @@ const App = () => {
             </p>
 
             <div className="flex justify-end gap-2">
+
               <button
                 className="px-3 py-1 text-xs border rounded hover:bg-gray-100"
-                onClick={() => setDeleteIndex(null)}
+                onClick={() =>
+                  setDeleteIndex(null)
+                }
               >
                 Cancel
               </button>
@@ -813,23 +1304,136 @@ const App = () => {
                 Delete
               </button>
             </div>
-
           </div>
         </div>
-        
-        
       )}
-      
 
-    {/* // </Layout> */}
+      {/* DESCRIPTION MODAL */}
+      {descriptionModal.open &&
+        descriptionModal.jobIndex !== null &&
+        descriptionModal.fieldKey && (
+
+        <div className="fixed inset-0 z-[999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-5">
+
+          <div className="w-full max-w-4xl bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200">
+
+            {/* HEADER */}
+            <div className="flex items-center justify-between px-8 py-5 border-b border-slate-200 bg-[#f8fafc]">
+
+              <div>
+
+                <h2 className="text-2xl font-black text-[#0f172a]">
+                  Job Description Editor
+                </h2>
+
+                <p className="text-sm text-slate-500 mt-1">
+                  Add responsibilities, requirements,
+                  skills and more.
+                </p>
+              </div>
+
+              <button
+                onClick={() =>
+                  setDescriptionModal({
+                    open: false,
+                    jobIndex: null,
+                    fieldKey: null
+                  })
+                }
+                className="
+                  w-11
+                  h-11
+                  rounded-full
+                  bg-red-50
+                  hover:bg-red-500
+                  hover:text-white
+                  text-red-500
+                  transition-all
+                  flex
+                  items-center
+                  justify-center
+                "
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* BODY */}
+            <div className="p-8 flex-1 overflow-hidden">
+
+              <textarea
+                autoFocus
+                rows={14}
+                className="
+                  w-full
+                  rounded-3xl
+                  border
+                  border-slate-200
+                  bg-[#f8fafc]
+                  p-6
+                  text-[15px]
+                  leading-[1.9]
+                  outline-none
+                  resize-none
+                  focus:border-[#217346]
+                  focus:ring-4
+                  focus:ring-green-100
+                "
+                placeholder="Write complete job description here..."
+                value={modalText}
+                onChange={(e) =>
+                  setModalText(e.target.value)
+                }
+              />
+            </div>
+
+            {/* FOOTER */}
+            <div className="px-8 py-5 border-t border-slate-200 bg-[#f8fafc] flex justify-between items-center">
+
+              <span className="text-sm text-slate-500">
+                Supports long formatted content
+              </span>
+
+              <button
+                onClick={() => {
+
+                  if (
+                    descriptionModal.jobIndex !== null &&
+                    descriptionModal.fieldKey
+                  ) {
+
+                    handleChange(
+                      descriptionModal.jobIndex,
+                      descriptionModal.fieldKey,
+                      modalText
+                    );
+                  }
+
+                  setDescriptionModal({
+                    open: false,
+                    jobIndex: null,
+                    fieldKey: null
+                  });
+                }}
+                className="
+                  px-6
+                  py-3
+                  rounded-2xl
+                  bg-[#217346]
+                  hover:bg-[#1a5c39]
+                  text-white
+                  font-semibold
+                  transition-all
+                "
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-
-
-
   );
 };
-
-
-
 
 export default App;
