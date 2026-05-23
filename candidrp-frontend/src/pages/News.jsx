@@ -203,9 +203,7 @@ export default function News() {
                     </Link>
                   </h3>
 
-                  <p className="text-slate-600 mb-6 line-clamp-3 leading-relaxed">
-                    {post.excerpt || "We are pleased to announce our latest milestone in digital transformation and industry-leading innovation."}
-                  </p>
+                 
 
                   <div className="mt-auto pt-6 border-t border-slate-100">
                     <Link
