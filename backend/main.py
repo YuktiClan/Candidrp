@@ -1,3 +1,5 @@
+
+
 from importlib.resources import path
 
 from fastapi import FastAPI, Form, UploadFile, File
@@ -588,17 +590,34 @@ def delete_news(id: str):
 
     # 🔥 DELETE FROM CLOUDINARY
     for sec in news.get("sections", []):
+
+        # ✅ IMAGE 1
         if sec.get("image_public_id"):
             try:
-                cloudinary.uploader.destroy(sec["image_public_id"])
+                cloudinary.uploader.destroy(
+                    sec["image_public_id"]
+                )
             except Exception as e:
                 print("Error deleting image:", e)
 
+        # ✅ IMAGE 2
         if sec.get("image2_public_id"):
             try:
-                cloudinary.uploader.destroy(sec["image2_public_id"])
+                cloudinary.uploader.destroy(
+                    sec["image2_public_id"]
+                )
             except Exception as e:
                 print("Error deleting image2:", e)
+
+        # ✅ WORD FILE
+        if sec.get("docx_public_id"):
+            try:
+                cloudinary.uploader.destroy(
+                    sec["docx_public_id"],
+                    resource_type="raw"
+                )
+            except Exception as e:
+                print("Error deleting docx:", e)
 
     # 🔥 DELETE FROM DB
     news_collection.delete_one({"_id": ObjectId(id)})
@@ -740,6 +759,29 @@ async def upload_article(file: UploadFile = File(...)):
         return {"error": str(e)}
 
 
+
+@app.post("/delete-image")
+async def delete_image(data: dict):
+
+    public_id = data.get("public_id")
+
+    if not public_id:
+        return {"success": False}
+
+    try:
+        cloudinary.uploader.destroy(public_id)
+
+        return {"success": True}
+
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+        
+        
+        
+
 @app.get("/notifications")
 def get_notifications():
     data = list(notifications_collection.find().sort("date", -1))
@@ -758,3 +800,9 @@ def delete_notification(id: str):
         return {"message": "Deleted ✅"}
     except:
         return {"error": "Invalid ID"}
+    
+    
+    
+
+        
+        
