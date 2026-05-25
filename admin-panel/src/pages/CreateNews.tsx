@@ -1,6 +1,8 @@
 
 
-import React, { useState, useEffect } from "react";
+
+
+import React, { useState, useEffect, useRef } from "react";
 import Editor from "../components/Editor";
 
 type Section = {
@@ -31,16 +33,83 @@ const layouts = {
   ],
 };
 
+const DRAFT_KEY = "create_news_draft";
+
 export default function CreateNews() {
+
   const [title, setTitle] = useState("");
   const [sections, setSections] = useState<Section[]>([]);
   const [mounted, setMounted] = useState(false);
+
+  const publishedRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  // LOAD DRAFT
+  useEffect(() => {
+
+    const savedDraft = localStorage.getItem(DRAFT_KEY);
+
+    if (savedDraft) {
+
+      try {
+
+        const parsed = JSON.parse(savedDraft);
+
+        setTitle(parsed.title || "");
+        setSections(parsed.sections || []);
+
+      } catch (err) {
+        console.log(err);
+      }
+
+    }
+
+  }, []);
+
+  // SAVE DRAFT
+  useEffect(() => {
+
+    localStorage.setItem(
+      DRAFT_KEY,
+      JSON.stringify({
+        title,
+        sections,
+      })
+    );
+
+  }, [title, sections]);
+
+  // DELETE IMAGE
+  const deleteCloudinaryImage = async (public_id?: string) => {
+
+    if (!public_id) return;
+
+    try {
+
+      await fetch(
+        `${import.meta.env.VITE_API_URL}/delete-image`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            public_id,
+          }),
+        }
+      );
+
+    } catch (err) {
+      console.log("Delete failed", err);
+    }
+  };
+
+  // UPLOAD IMAGE
   const uploadToCloudinary = async (file: File) => {
+
     const formData = new FormData();
 
     formData.append("file", file);
@@ -62,7 +131,9 @@ export default function CreateNews() {
     };
   };
 
+  // ADD SECTION
   const addSection = (type: string) => {
+
     setSections((prev) => [
       ...prev,
       {
@@ -75,15 +146,37 @@ export default function CreateNews() {
     ]);
   };
 
-  const removeSection = (index: number) => {
-    setSections((prev) => prev.filter((_, i) => i !== index));
+  // REMOVE SECTION
+  const removeSection = async (index: number) => {
+
+    const sec = sections[index];
+
+    // DELETE IMAGE 1
+    if (sec?.image_public_id) {
+      await deleteCloudinaryImage(
+        sec.image_public_id
+      );
+    }
+
+    // DELETE IMAGE 2
+    if (sec?.image2_public_id) {
+      await deleteCloudinaryImage(
+        sec.image2_public_id
+      );
+    }
+
+    setSections((prev) =>
+      prev.filter((_, i) => i !== index)
+    );
   };
 
+  // UPDATE SECTION
   const updateSection = (
     index: number,
     field: keyof Section,
     value: string
   ) => {
+
     const updated = [...sections];
 
     if (!updated[index]) return;
@@ -96,22 +189,70 @@ export default function CreateNews() {
     setSections(updated);
   };
 
+  // CLEAR FULL DRAFT
+  const clearDraft = async () => {
+
+    const confirmDelete = window.confirm(
+      "Are you sure you want to clear the full draft?"
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+
+      for (const sec of sections) {
+
+        if (sec.image_public_id) {
+          await deleteCloudinaryImage(
+            sec.image_public_id
+          );
+        }
+
+        if (sec.image2_public_id) {
+          await deleteCloudinaryImage(
+            sec.image2_public_id
+          );
+        }
+
+      }
+
+      localStorage.removeItem(DRAFT_KEY);
+
+      setTitle("");
+      setSections([]);
+
+      alert("Draft Cleared ✅");
+
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  // SUBMIT
   const handleSubmit = async () => {
+
     if (!title.trim()) {
       alert("⚠ Please enter a title before publishing!");
       return;
     }
 
-    await fetch(`${import.meta.env.VITE_API_URL}/add-news`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title,
-        sections,
-      }),
-    });
+    publishedRef.current = true;
+
+    await fetch(
+      `${import.meta.env.VITE_API_URL}/add-news`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          sections,
+        }),
+      }
+    );
+
+    localStorage.removeItem(DRAFT_KEY);
 
     alert("News Created ✅");
 
@@ -127,6 +268,27 @@ export default function CreateNews() {
 
   const uploadInputClass =
     "w-full border border-slate-200 bg-white rounded-2xl px-4 py-4 text-slate-700 file:mr-4 file:px-4 file:py-2 file:border-0 file:rounded-xl file:bg-indigo-600 file:text-white file:font-semibold";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   return (
 
@@ -156,28 +318,20 @@ export default function CreateNews() {
     overflow-hidden
   ">
 
-    {/* INNER LIGHT BACKGROUND */}
     <div className="absolute inset-0 bg-[#f4f7fb]" />
 
-    {/* SOFT WHITE OVERLAY */}
     <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-white/20" />
 
-    {/* PAGE CONTENT */}
     <div className="relative z-10">
-
-
 
     <div className="min-h-screen bg-[#f5f7fb] overflow-hidden relative ">
 
-      {/* BACKGROUND */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#f8fbff] via-[#f5f7fb] to-[#eef2f7]" />
 
-      {/* GLOW */}
       <div className="absolute top-[-150px] left-[-150px] w-[400px] h-[400px] bg-indigo-200/40 rounded-full blur-[120px]" />
 
       <div className="absolute bottom-[-150px] right-[-150px] w-[400px] h-[400px] bg-purple-200/40 rounded-full blur-[120px]" />
 
-      {/* GRID */}
       <div
         className={`absolute inset-0 opacity-[0.04] transition-all duration-[2500ms] ${
           mounted ? "translate-y-0" : "translate-y-20"
@@ -189,7 +343,6 @@ export default function CreateNews() {
         }}
       />
 
-      {/* MAIN */}
       <div className="relative z-10 w-full max-w-[1600px] mx-auto px-5 md:px-10 py-10">
 
         {/* HEADER */}
@@ -200,20 +353,19 @@ export default function CreateNews() {
               : "opacity-0 translate-y-10"
           }`}
         >
-          
 
           <h1 className="text-5xl md:text-6xl font-black tracking-tight text-slate-900">
             Create{" "}
-<span className="bg-gradient-to-r from-[#14532d] via-[#16a34a] to-[#4ade80] bg-clip-text text-transparent">
-  Article
-</span>
+            <span className="bg-gradient-to-r from-[#14532d] via-[#16a34a] to-[#4ade80] bg-clip-text text-transparent">
+              Article
+            </span>
           </h1>
 
-          
         </div>
 
         {/* TITLE */}
-        <div className={`${cardClass} p-6 md:p-8 mb-12`}>
+        <div className={`${cardClass} p-6 md:p-8 mb-8`}>
+
           <label className="block text-sm font-bold text-slate-700 mb-4">
             Article Title
           </label>
@@ -237,6 +389,31 @@ export default function CreateNews() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
+
+          {/* DRAFT BUTTON */}
+          <div className="mt-5 flex justify-end">
+
+            {(title.trim() || sections.length > 0) && (
+  <button
+    onClick={clearDraft}
+    className="
+      px-5 py-3
+      rounded-2xl
+      bg-red-50
+      border border-red-200
+      text-red-600
+      font-semibold
+      hover:bg-red-500
+      hover:text-white
+      transition-all
+    "
+  >
+    Clear Full Draft
+  </button>
+)}
+
+          </div>
+
         </div>
 
         {/* BUTTON AREA */}
@@ -251,34 +428,27 @@ export default function CreateNews() {
             <div className="flex flex-col gap-4">
               {layouts.left.map((l, i) => (
                 <button
-  key={i}
-  onClick={() => addSection(l.type)}
-  className="
-    w-full
-    px-5 py-3
-    rounded-2xl
-
-    bg-[#1f7a45]
-
-    text-white
-    font-semibold
-    text-[17px]
-    tracking-[-0.01em]
-
-    border border-white/10
-
-    shadow-[0_10px_30px_rgba(31,122,69,0.22)]
-
-    hover:bg-[#17663a]
-    hover:shadow-[0_18px_45px_rgba(31,122,69,0.32)]
-    hover:scale-[1.015]
-    hover:-translate-y-1
-
-    active:scale-[0.99]
-
-    transition-all duration-300
-  "
->
+                  key={i}
+                  onClick={() => addSection(l.type)}
+                  className="
+                    w-full
+                    px-5 py-3
+                    rounded-2xl
+                    bg-[#1f7a45]
+                    text-white
+                    font-semibold
+                    text-[17px]
+                    tracking-[-0.01em]
+                    border border-white/10
+                    shadow-[0_10px_30px_rgba(31,122,69,0.22)]
+                    hover:bg-[#17663a]
+                    hover:shadow-[0_18px_45px_rgba(31,122,69,0.32)]
+                    hover:scale-[1.015]
+                    hover:-translate-y-1
+                    active:scale-[0.99]
+                    transition-all duration-300
+                  "
+                >
                   {l.label}
                 </button>
               ))}
@@ -290,14 +460,12 @@ export default function CreateNews() {
 
             <div className="text-center">
 
-              
               <h3 className="mt-6 text-2xl font-bold text-slate-800">
                 Mixed Layouts
               </h3>
 
               <p className="mt-3 text-slate-500 max-w-xs mx-auto leading-relaxed">
-                Create dynamic article sections using combined image and text
-                layouts.
+                Create dynamic article sections using combined image and text layouts.
               </p>
 
               <div className="mt-6 flex flex-col gap-4">
@@ -356,13 +524,17 @@ export default function CreateNews() {
               ))}
             </div>
           </div>
+
         </div>
 
         {/* SECTIONS */}
         <div className="space-y-10">
 
           {sections.map((sec, i) => (
-            <div key={i} className={`${cardClass} p-6 md:p-8 relative`}>
+            <div
+              key={i}
+              className={`${cardClass} p-6 md:p-8 relative`}
+            >
 
               {/* REMOVE */}
               <button
@@ -387,11 +559,14 @@ export default function CreateNews() {
               </div>
 
               {/* FULL TEXT */}
-              {(sec.type === "text" || sec.type === "subtitle") && (
+              {(sec.type === "text" ||
+                sec.type === "subtitle") && (
                 <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-6 min-h-[220px]">
                   <Editor
                     value={sec.content || ""}
-                    onChange={(val) => updateSection(i, "content", val)}
+                    onChange={(val) =>
+                      updateSection(i, "content", val)
+                    }
                   />
                 </div>
               )}
@@ -406,12 +581,24 @@ export default function CreateNews() {
                       type="file"
                       className={uploadInputClass}
                       onChange={async (e) => {
+
                         const file = e.target.files?.[0];
+
                         if (!file) return;
 
-                        const data = await uploadToCloudinary(file);
-
                         const updated = [...sections];
+
+                        // DELETE OLD IMAGE
+                        if (updated[i]?.image_public_id) {
+
+                          await deleteCloudinaryImage(
+                            updated[i].image_public_id
+                          );
+                        }
+
+                        // UPLOAD NEW IMAGE
+                        const data =
+                          await uploadToCloudinary(file);
 
                         updated[i] = {
                           ...updated[i],
@@ -432,26 +619,54 @@ export default function CreateNews() {
                         />
                       </div>
                     )}
+
                   </div>
 
                   <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-6 min-h-[320px]">
+
                     <Editor
                       value={sec.content || ""}
-                      onChange={(val) => updateSection(i, "content", val)}
+                      onChange={(val) =>
+                        updateSection(i, "content", val)
+                      }
                     />
+
                   </div>
+
                 </div>
               )}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
               {/* IMAGE RIGHT */}
               {sec.type === "image-right" && (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
 
                   <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-6 min-h-[320px] order-2 xl:order-1">
+
                     <Editor
                       value={sec.content || ""}
-                      onChange={(val) => updateSection(i, "content", val)}
+                      onChange={(val) =>
+                        updateSection(i, "content", val)
+                      }
                     />
+
                   </div>
 
                   <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-5 order-1 xl:order-2">
@@ -460,12 +675,24 @@ export default function CreateNews() {
                       type="file"
                       className={uploadInputClass}
                       onChange={async (e) => {
+
                         const file = e.target.files?.[0];
+
                         if (!file) return;
 
-                        const data = await uploadToCloudinary(file);
-
                         const updated = [...sections];
+
+                        // DELETE OLD IMAGE
+                        if (updated[i]?.image_public_id) {
+
+                          await deleteCloudinaryImage(
+                            updated[i].image_public_id
+                          );
+                        }
+
+                        // UPLOAD NEW IMAGE
+                        const data =
+                          await uploadToCloudinary(file);
 
                         updated[i] = {
                           ...updated[i],
@@ -486,7 +713,9 @@ export default function CreateNews() {
                         />
                       </div>
                     )}
+
                   </div>
+
                 </div>
               )}
 
@@ -495,18 +724,27 @@ export default function CreateNews() {
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
 
                   <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-6 min-h-[320px]">
+
                     <Editor
                       value={sec.content || ""}
-                      onChange={(val) => updateSection(i, "content", val)}
+                      onChange={(val) =>
+                        updateSection(i, "content", val)
+                      }
                     />
+
                   </div>
 
                   <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-6 min-h-[320px]">
+
                     <Editor
                       value={sec.content2 || ""}
-                      onChange={(val) => updateSection(i, "content2", val)}
+                      onChange={(val) =>
+                        updateSection(i, "content2", val)
+                      }
                     />
+
                   </div>
+
                 </div>
               )}
 
@@ -514,18 +752,31 @@ export default function CreateNews() {
               {sec.type === "two-image" && (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
 
+                  {/* IMAGE 1 */}
                   <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-5">
 
                     <input
                       type="file"
                       className={uploadInputClass}
                       onChange={async (e) => {
+
                         const file = e.target.files?.[0];
+
                         if (!file) return;
 
-                        const data = await uploadToCloudinary(file);
-
                         const updated = [...sections];
+
+                        // DELETE OLD IMAGE
+                        if (updated[i]?.image_public_id) {
+
+                          await deleteCloudinaryImage(
+                            updated[i].image_public_id
+                          );
+                        }
+
+                        // UPLOAD NEW IMAGE
+                        const data =
+                          await uploadToCloudinary(file);
 
                         updated[i] = {
                           ...updated[i],
@@ -546,20 +797,34 @@ export default function CreateNews() {
                         />
                       </div>
                     )}
+
                   </div>
 
+                  {/* IMAGE 2 */}
                   <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-5">
 
                     <input
                       type="file"
                       className={uploadInputClass}
                       onChange={async (e) => {
+
                         const file = e.target.files?.[0];
+
                         if (!file) return;
 
-                        const data = await uploadToCloudinary(file);
-
                         const updated = [...sections];
+
+                        // DELETE OLD IMAGE
+                        if (updated[i]?.image2_public_id) {
+
+                          await deleteCloudinaryImage(
+                            updated[i].image2_public_id
+                          );
+                        }
+
+                        // UPLOAD NEW IMAGE
+                        const data =
+                          await uploadToCloudinary(file);
 
                         updated[i] = {
                           ...updated[i],
@@ -580,7 +845,9 @@ export default function CreateNews() {
                         />
                       </div>
                     )}
+
                   </div>
+
                 </div>
               )}
 
@@ -592,12 +859,24 @@ export default function CreateNews() {
                     type="file"
                     className={uploadInputClass}
                     onChange={async (e) => {
+
                       const file = e.target.files?.[0];
+
                       if (!file) return;
 
-                      const data = await uploadToCloudinary(file);
-
                       const updated = [...sections];
+
+                      // DELETE OLD IMAGE
+                      if (updated[i]?.image_public_id) {
+
+                        await deleteCloudinaryImage(
+                          updated[i].image_public_id
+                        );
+                      }
+
+                      // UPLOAD NEW IMAGE
+                      const data =
+                        await uploadToCloudinary(file);
 
                       updated[i] = {
                         ...updated[i],
@@ -618,6 +897,7 @@ export default function CreateNews() {
                       />
                     </div>
                   )}
+
                 </div>
               )}
 
@@ -629,78 +909,76 @@ export default function CreateNews() {
         <div className="mt-16 flex justify-center">
 
           <button
-  onClick={handleSubmit}
-  className="
-    group
-    relative
-    px-16
-    py-5
-    rounded-[2rem]
-    overflow-hidden
-    bg-[linear-gradient(135deg,#0f3d25_0%,#166534_35%,#16a34a_65%,#4ade80_100%)]
-    text-white
-    font-bold
-    text-lg
-    tracking-[-0.02em]
+            onClick={handleSubmit}
+            className="
+              group
+              relative
+              px-16
+              py-5
+              rounded-[2rem]
+              overflow-hidden
+              bg-[linear-gradient(135deg,#0f3d25_0%,#166534_35%,#16a34a_65%,#4ade80_100%)]
+              text-white
+              font-bold
+              text-lg
+              tracking-[-0.02em]
+              border
+              border-white/10
+              shadow-[0_12px_25px_rgba(0,0,0,0.15),0_30px_60px_rgba(22,101,52,0.35),inset_0_1px_1px_rgba(255,255,255,0.15)]
+              hover:shadow-[0_20px_40px_rgba(0,0,0,0.2),0_40px_80px_rgba(22,101,52,0.45),inset_0_1px_1px_rgba(255,255,255,0.2)]
+              hover:-translate-y-[4px]
+              active:translate-y-[2px]
+              transition-all
+              duration-300
+            "
+          >
 
-    border
-    border-white/10
+            {/* TOP LIGHT */}
+            <div className="
+              absolute
+              inset-x-4
+              top-[2px]
+              h-[45%]
+              rounded-full
+              bg-white/15
+              blur-xl
+            " />
 
-    shadow-[0_12px_25px_rgba(0,0,0,0.15),0_30px_60px_rgba(22,101,52,0.35),inset_0_1px_1px_rgba(255,255,255,0.15)]
+            {/* SHINE EFFECT */}
+            <div className="
+              absolute
+              inset-0
+              opacity-0
+              group-hover:opacity-100
+              transition-opacity
+              duration-500
+              bg-[linear-gradient(120deg,transparent_20%,rgba(255,255,255,0.18)_50%,transparent_80%)]
+            " />
 
-    hover:shadow-[0_20px_40px_rgba(0,0,0,0.2),0_40px_80px_rgba(22,101,52,0.45),inset_0_1px_1px_rgba(255,255,255,0.2)]
+            {/* BUTTON TEXT */}
+            <span className="relative z-10 flex items-center gap-3">
 
-    hover:-translate-y-[4px]
-    active:translate-y-[2px]
+              <span className="
+                w-3 h-3 rounded-full
+                bg-white
+                shadow-[0_0_15px_rgba(255,255,255,0.9)]
+              " />
 
-    transition-all
-    duration-300
-  "
->
+              Publish Article
 
-  {/* TOP LIGHT */}
-  <div className="
-    absolute
-    inset-x-4
-    top-[2px]
-    h-[45%]
-    rounded-full
-    bg-white/15
-    blur-xl
-  " />
+            </span>
 
-  {/* SHINE EFFECT */}
-  <div className="
-    absolute
-    inset-0
-    opacity-0
-    group-hover:opacity-100
-    transition-opacity
-    duration-500
-    bg-[linear-gradient(120deg,transparent_20%,rgba(255,255,255,0.18)_50%,transparent_80%)]
-  " />
-
-  {/* BUTTON TEXT */}
-  <span className="relative z-10 flex items-center gap-3">
-
-    <span className="
-      w-3 h-3 rounded-full
-      bg-white
-      shadow-[0_0_15px_rgba(255,255,255,0.9)]
-    " />
-
-    Publish Article
-
-  </span>
-</button>
+          </button>
 
         </div>
+
       </div>
     </div>
 
-</div>
     </div>
-     </div>
-    
+  </div>
+
+</div>
+
   );
 }
