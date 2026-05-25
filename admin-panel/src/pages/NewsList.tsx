@@ -1,5 +1,7 @@
 
-import React, { useEffect, useState } from "react";
+
+
+import React, { useEffect, useState, useRef } from "react";
 import Editor from "../components/Editor";
 
 import {
@@ -8,8 +10,8 @@ import {
   Trash2,
   Pencil,
   ArrowLeft,
-  Save,
   Plus,
+  CheckCircle2,
 } from "lucide-react";
 
 type Section = {
@@ -56,7 +58,9 @@ export default function NewsList() {
   const [editTitle, setEditTitle] = useState("");
   const [editSections, setEditSections] = useState<Section[]>([]);
 
-  const [isSaving, setIsSaving] = useState(false);
+  const [autoSaving, setAutoSaving] = useState(false);
+
+  const autoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -78,22 +82,109 @@ export default function NewsList() {
     fetchPosts();
   }, []);
 
+  // OPEN EDITOR
   const openEditor = (post: Post) => {
     setSelectedPost(post);
     setEditTitle(post.title || "");
     setEditSections(post.sections || []);
   };
 
+  // CLOSE EDITOR
   const closeEditor = () => {
     setSelectedPost(null);
     setEditTitle("");
     setEditSections([]);
   };
 
-  const removeSection = (index: number) => {
-    setEditSections((prev) => prev.filter((_, i) => i !== index));
+  // DELETE IMAGE FROM CLOUDINARY
+  const deleteCloudinaryImage = async (public_id?: string) => {
+    if (!public_id) return;
+
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/delete-image`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          public_id,
+        }),
+      });
+    } catch (err) {
+      console.log("Delete failed", err);
+    }
   };
 
+  // AUTO SAVE
+  const autoSaveArticle = async (
+    titleData: string,
+    sectionsData: Section[]
+  ) => {
+    if (!selectedPost) return;
+
+    try {
+      setAutoSaving(true);
+
+      await fetch(
+        `${import.meta.env.VITE_API_URL}/update/${selectedPost.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: titleData,
+            sections: sectionsData,
+          }),
+        }
+      );
+
+      fetchPosts();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTimeout(() => {
+        setAutoSaving(false);
+      }, 500);
+    }
+  };
+
+  // TRIGGER AUTO SAVE
+  const triggerAutoSave = (
+    titleData: string,
+    sectionsData: Section[]
+  ) => {
+    if (autoSaveTimeout.current) {
+      clearTimeout(autoSaveTimeout.current);
+    }
+
+    autoSaveTimeout.current = setTimeout(() => {
+      autoSaveArticle(titleData, sectionsData);
+    }, 1200);
+  };
+
+  // REMOVE SECTION
+  const removeSection = async (index: number) => {
+    const sec = editSections[index];
+
+    // DELETE IMAGE 1
+    if (sec?.image_public_id) {
+      await deleteCloudinaryImage(sec.image_public_id);
+    }
+
+    // DELETE IMAGE 2
+    if (sec?.image2_public_id) {
+      await deleteCloudinaryImage(sec.image2_public_id);
+    }
+
+    const updated = editSections.filter((_, i) => i !== index);
+
+    setEditSections(updated);
+
+    triggerAutoSave(editTitle, updated);
+  };
+
+  // UPDATE SECTION
   const updateSection = (
     index: number,
     field: keyof Section,
@@ -107,11 +198,21 @@ export default function NewsList() {
     };
 
     setEditSections(updated);
+
+    triggerAutoSave(editTitle, updated);
   };
 
+  // UPDATE TITLE
+  const handleTitleChange = (value: string) => {
+    setEditTitle(value);
+
+    triggerAutoSave(value, editSections);
+  };
+
+  // ADD SECTION
   const addSection = (type: string) => {
-    setEditSections((prev) => [
-      ...prev,
+    const updated = [
+      ...editSections,
       {
         type,
         content: "",
@@ -119,9 +220,14 @@ export default function NewsList() {
         image: "",
         image2: "",
       },
-    ]);
+    ];
+
+    setEditSections(updated);
+
+    triggerAutoSave(editTitle, updated);
   };
 
+  // UPLOAD IMAGE
   const uploadToCloudinary = async (file: File) => {
     const formData = new FormData();
 
@@ -144,6 +250,7 @@ export default function NewsList() {
     };
   };
 
+  // DELETE ARTICLE
   const handleDelete = async (id: string) => {
     if (!window.confirm("Delete this article?")) return;
 
@@ -163,47 +270,38 @@ export default function NewsList() {
     }
   };
 
-  const handleUpdate = async () => {
-    if (!selectedPost) return;
-
-    setIsSaving(true);
-
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/update/${selectedPost.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            title: editTitle,
-            sections: editSections,
-          }),
-        }
-      );
-
-      if (res.ok) {
-        alert("Article Updated ✅");
-
-        fetchPosts();
-
-        closeEditor();
-      } else {
-        alert("Update failed");
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   const imageClass =
     "w-full h-auto object-contain rounded-2xl border border-slate-200 bg-white";
 
   const uploadInputClass =
     "w-full border border-slate-200 bg-white rounded-2xl px-4 py-4 text-slate-700 file:mr-4 file:px-4 file:py-2 file:border-0 file:rounded-xl file:bg-[#1f7a45] file:text-white file:font-semibold";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   /*
   ==========================================================
@@ -234,23 +332,29 @@ export default function NewsList() {
               </h1>
             </div>
 
-            <button
-              onClick={handleUpdate}
+            {/* AUTO SAVE STATUS */}
+            <div
               className="
                 flex items-center gap-3
-                px-8 py-4
+                px-6 py-4
                 rounded-2xl
-                bg-[#1f7a45]
-                hover:bg-[#17663a]
-                text-white
-                font-bold
-                shadow-xl
-                transition-all
+                bg-white
+                border border-slate-200
+                shadow-lg
               "
             >
-              <Save className="w-5 h-5" />
-              {isSaving ? "Saving..." : "Save Article"}
-            </button>
+              <CheckCircle2
+                className={`w-5 h-5 ${
+                  autoSaving
+                    ? "text-orange-500 animate-pulse"
+                    : "text-green-600"
+                }`}
+              />
+
+              <span className="font-semibold text-slate-700">
+                {autoSaving ? "Auto Saving..." : "Auto Saved"}
+              </span>
+            </div>
           </div>
 
           {/* TITLE */}
@@ -262,7 +366,7 @@ export default function NewsList() {
 
             <input
               value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
+              onChange={(e) => handleTitleChange(e.target.value)}
               className="
                 w-full
                 border border-slate-200
@@ -387,11 +491,30 @@ export default function NewsList() {
                       className={uploadInputClass}
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
+
                         if (!file) return;
 
+                        const updated = [...editSections];
+
+                        // DELETE OLD IMAGE
+                        if (updated[i]?.image_public_id) {
+                          await deleteCloudinaryImage(
+                            updated[i].image_public_id
+                          );
+                        }
+
+                        // UPLOAD NEW IMAGE
                         const data = await uploadToCloudinary(file);
 
-                        updateSection(i, "image", data.url);
+                        updated[i] = {
+                          ...updated[i],
+                          image: data.url,
+                          image_public_id: data.public_id,
+                        };
+
+                        setEditSections(updated);
+
+                        triggerAutoSave(editTitle, updated);
                       }}
                     />
 
@@ -418,11 +541,30 @@ export default function NewsList() {
                         className={uploadInputClass}
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
+
                           if (!file) return;
 
+                          const updated = [...editSections];
+
+                          // DELETE OLD IMAGE
+                          if (updated[i]?.image_public_id) {
+                            await deleteCloudinaryImage(
+                              updated[i].image_public_id
+                            );
+                          }
+
+                          // UPLOAD NEW IMAGE
                           const data = await uploadToCloudinary(file);
 
-                          updateSection(i, "image", data.url);
+                          updated[i] = {
+                            ...updated[i],
+                            image: data.url,
+                            image_public_id: data.public_id,
+                          };
+
+                          setEditSections(updated);
+
+                          triggerAutoSave(editTitle, updated);
                         }}
                       />
 
@@ -449,73 +591,126 @@ export default function NewsList() {
                 )}
 
                 {/* TWO IMAGE */}
-{sec.type === "two-image" && (
-  <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                {sec.type === "two-image" && (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
 
-    {/* LEFT IMAGE */}
-    <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-5">
+                    {/* LEFT IMAGE */}
+                    <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-5">
 
-      <input
-        type="file"
-        className={uploadInputClass}
-        onChange={async (e) => {
-          const file = e.target.files?.[0];
+                      <input
+                        type="file"
+                        className={uploadInputClass}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
 
-          if (!file) return;
+                          if (!file) return;
 
-          const data = await uploadToCloudinary(file);
+                          const updated = [...editSections];
 
-          updateSection(i, "image", data.url);
-        }}
-      />
+                          // DELETE OLD IMAGE
+                          if (updated[i]?.image_public_id) {
+                            await deleteCloudinaryImage(
+                              updated[i].image_public_id
+                            );
+                          }
 
-      {sec.image && (
-        <div className="mt-5">
-          <img
-            src={sec.image}
-            alt=""
-            className={imageClass}
-          />
-        </div>
-      )}
-    </div>
+                          // UPLOAD NEW IMAGE
+                          const data = await uploadToCloudinary(file);
 
-    {/* RIGHT IMAGE */}
-    <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-5">
+                          updated[i] = {
+                            ...updated[i],
+                            image: data.url,
+                            image_public_id: data.public_id,
+                          };
 
-      <input
-        type="file"
-        className={uploadInputClass}
-        onChange={async (e) => {
-          const file = e.target.files?.[0];
+                          setEditSections(updated);
 
-          if (!file) return;
+                          triggerAutoSave(editTitle, updated);
+                        }}
+                      />
 
-          const data = await uploadToCloudinary(file);
+                      {sec.image && (
+                        <div className="mt-5">
+                          <img
+                            src={sec.image}
+                            alt=""
+                            className={imageClass}
+                          />
+                        </div>
+                      )}
+                    </div>
 
-          updateSection(i, "image2", data.url);
-        }}
-      />
+                    {/* RIGHT IMAGE */}
 
-      {sec.image2 && (
-        <div className="mt-5">
-          <img
-            src={sec.image2}
-            alt=""
-            className={imageClass}
-          />
-        </div>
-      )}
-    </div>
 
-  </div>
-)}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-5">
+
+                      <input
+                        type="file"
+                        className={uploadInputClass}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+
+                          if (!file) return;
+
+                          const updated = [...editSections];
+
+                          // DELETE OLD IMAGE
+                          if (updated[i]?.image2_public_id) {
+                            await deleteCloudinaryImage(
+                              updated[i].image2_public_id
+                            );
+                          }
+
+                          // UPLOAD NEW IMAGE
+                          const data = await uploadToCloudinary(file);
+
+                          updated[i] = {
+                            ...updated[i],
+                            image2: data.url,
+                            image2_public_id: data.public_id,
+                          };
+
+                          setEditSections(updated);
+
+                          triggerAutoSave(editTitle, updated);
+                        }}
+                      />
+
+                      {sec.image2 && (
+                        <div className="mt-5">
+                          <img
+                            src={sec.image2}
+                            alt=""
+                            className={imageClass}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+                )}
 
                 {/* IMAGE RIGHT */}
                 {sec.type === "image-right" && (
-
-
-                  
                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
 
                     <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-6 order-2 xl:order-1">
@@ -534,11 +729,30 @@ export default function NewsList() {
                         className={uploadInputClass}
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
+
                           if (!file) return;
 
+                          const updated = [...editSections];
+
+                          // DELETE OLD IMAGE
+                          if (updated[i]?.image_public_id) {
+                            await deleteCloudinaryImage(
+                              updated[i].image_public_id
+                            );
+                          }
+
+                          // UPLOAD NEW IMAGE
                           const data = await uploadToCloudinary(file);
 
-                          updateSection(i, "image", data.url);
+                          updated[i] = {
+                            ...updated[i],
+                            image: data.url,
+                            image_public_id: data.public_id,
+                          };
+
+                          setEditSections(updated);
+
+                          triggerAutoSave(editTitle, updated);
                         }}
                       />
 
@@ -551,11 +765,10 @@ export default function NewsList() {
                           />
                         </div>
                       )}
-                      
+
                     </div>
-                    
+
                   </div>
-                  
                 )}
               </div>
             ))}
