@@ -1,324 +1,520 @@
+
+
+
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
-
-
-
-
-
 export default function NewsDetail() {
   const { slug } = useParams();
+
   const [post, setPost] = useState(null);
   const [allNews, setAllNews] = useState([]);
 
   useEffect(() => {
-    console.log("API:", import.meta.env.VITE_API_URL);
     fetch(`${import.meta.env.VITE_API_URL}/news`)
       .then((res) => res.json())
-      // .then((data) => {
-      //   setPost(data.find((item) => item.slug === slug));
-      // });
       .then((data) => {
         setAllNews(data);
         setPost(data.find((item) => item.slug === slug));
       });
   }, [slug]);
 
- if (!post)
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden">
+  if (!post)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden">
 
-      {/* 🔮 BACKGROUND GLOW */}
-      <div className="absolute w-[400px] h-[400px] bg-purple-500/20 rounded-full blur-[120px] animate-pulse"></div>
-      <div className="absolute w-[300px] h-[300px] bg-indigo-500/20 rounded-full blur-[100px] animate-pulse delay-300"></div>
+        {/* GLOW */}
+        <div className="absolute w-[400px] h-[400px] bg-purple-500/20 rounded-full blur-[120px] animate-pulse"></div>
 
-      <div className="flex flex-col items-center gap-8 z-10">
+        <div className="absolute w-[300px] h-[300px] bg-indigo-500/20 rounded-full blur-[100px] animate-pulse delay-300"></div>
 
-        {/* 🔷 GLASS CARD */}
-        <div className="relative px-10 py-8 rounded-2xl backdrop-blur-xl bg-white/60 border border-purple-100 shadow-xl">
+        <div className="flex flex-col items-center gap-8 z-10">
 
-          {/* 🔄 MOVING GRADIENT BAR */}
-          <div className="absolute top-0 left-0 w-full h-[3px] overflow-hidden rounded-t-2xl">
-            <div className="h-full w-1/2 bg-gradient-to-r from-purple-500 to-indigo-500 animate-[slide_1.5s_linear_infinite]"></div>
-          </div>
+          <div className="relative px-10 py-8 rounded-2xl backdrop-blur-xl bg-white/60 border border-purple-100 shadow-xl">
 
-          {/* 🌀 CENTER ANIMATION */}
-          <div className="flex items-center justify-center mb-6">
-            <div className="relative w-16 h-16">
-
-              {/* outer ring */}
-              <div className="absolute inset-0 rounded-full border-2 border-purple-200"></div>
-
-              {/* rotating ring */}
-              <div className="absolute inset-0 rounded-full border-2 border-t-purple-600 border-r-indigo-500 border-b-transparent border-l-transparent animate-spin"></div>
-
-              {/* inner pulse */}
-              <div className="absolute inset-2 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full animate-ping opacity-30"></div>
-
+            {/* TOP BAR */}
+            <div className="absolute top-0 left-0 w-full h-[3px] overflow-hidden rounded-t-2xl">
+              <div className="h-full w-1/2 bg-gradient-to-r from-purple-500 to-indigo-500 animate-[slide_1.5s_linear_infinite]"></div>
             </div>
+
+            {/* LOADER */}
+            <div className="flex items-center justify-center mb-6">
+              <div className="relative w-16 h-16">
+
+                <div className="absolute inset-0 rounded-full border-2 border-purple-200"></div>
+
+                <div className="absolute inset-0 rounded-full border-2 border-t-purple-600 border-r-indigo-500 border-b-transparent border-l-transparent animate-spin"></div>
+
+                <div className="absolute inset-2 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full animate-ping opacity-30"></div>
+
+              </div>
+            </div>
+
+            <p className="text-sm tracking-[0.3em] text-gray-600 text-center flex items-center justify-center gap-1">
+              LOADING
+              <span className="animate-bounce [animation-delay:0ms]">.</span>
+              <span className="animate-bounce [animation-delay:150ms]">.</span>
+              <span className="animate-bounce [animation-delay:300ms]">.</span>
+            </p>
+
           </div>
-
-          {/* 🔤 TEXT + DOTS */}
-          <p className="text-sm tracking-[0.3em] text-gray-600 text-center flex items-center justify-center gap-1">
-            LOADING
-            <span className="animate-bounce [animation-delay:0ms]">.</span>
-            <span className="animate-bounce [animation-delay:150ms]">.</span>
-            <span className="animate-bounce [animation-delay:300ms]">.</span>
-          </p>
-
         </div>
+
+        <style>
+          {`
+            @keyframes slide {
+              0% { transform: translateX(-100%); }
+              100% { transform: translateX(200%); }
+            }
+          `}
+        </style>
       </div>
-
-      {/* 🔧 KEYFRAME (add once in global CSS or tailwind config) */}
-      <style>
-        {`
-          @keyframes slide {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(200%); }
-          }
-        `}
-      </style>
-
-    </div>
-  );
+    );
 
   return (
-    <div>
+    <div className="bg-white">
       <Navbar />
 
-      {/* <div className="max-w-6xl mx-auto p-6"> */}
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-24">
-          {/* <h1 className="text-4xl font-bold mb-6">{post.title}</h1> */}
 
-
-          {/* LEFT SIDE */}
+          {/* LEFT */}
           <div className="lg:col-span-2">
-            <br /><br /><br /><br />
 
-            {/* Title */}
-            <div className="mb-10">
+            <br />
+            <br />
+            <br />
+            <br />
 
-              {/* SMALL TAG */}
-              <div className="mb-4">
-                <span className="text-[10px] font-bold tracking-[0.25em] uppercase px-4 py-1 rounded-full 
-                      bg-purple-100 text-purple-600">
+            {/* TITLE */}
+            <div className="mb-12">
+
+              {/* TAG */}
+              <div className="mb-5">
+                <span
+                  className="
+                    text-[10px]
+                    font-bold
+                    tracking-[0.25em]
+                    uppercase
+                    px-4 py-1
+                    rounded-full
+                    bg-purple-100
+                    text-purple-600
+                  "
+                >
                   Official Press
                 </span>
               </div>
 
-              {/* BIG TITLE */}
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight">
+              {/* HEADING */}
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight">
 
-                {/* FIRST WORD */}
                 <span className="text-slate-900">
                   {post.title.split(" ")[0]}
                 </span>{" "}
 
-                {/* REST WITH GRADIENT */}
                 <span className="bg-gradient-to-r from-purple-600 to-indigo-500 bg-clip-text text-transparent">
                   {post.title.split(" ").slice(1).join(" ")}
                 </span>
 
               </h1>
 
-              {/* Publish Date */}
-              <p className="mt-4 text-sm text-slate-500 flex items-center gap-2">
+              {/* DATE */}
+              <p className="mt-5 text-sm text-slate-500 flex items-center gap-2">
 
-                {/* DOT */}
                 <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
 
-                {/* DATE */}
                 {post.date
                   ? new Date(post.date).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
                   : "Recently Published"}
-
               </p>
-
             </div>
 
-            {post.sections?.map((sec, i) => {
+            {/* CONTENT */}
+            <div
+              className="
+                article-content
+                text-[17px]
+                leading-[1.9]
+                text-slate-700
+              "
+            >
 
-              // ✅ 1. SUBTITLE (ADD HERE)
-              if (sec.type === "subtitle") {
-                return (
-                  <div
-                    key={i}
-                    className="
-                    text-xl md:text-2xl font-semibold 
-                    text-slate-800 leading-snug 
-                    my-6 border-l-4 border-purple-500 pl-4
-                  "
-                    dangerouslySetInnerHTML={{ __html: sec.content }}
-                  />
-                );
-              }
+              {post.sections?.map((sec, i) => {
 
+                // WORD DOCUMENT
+                // WORD DOCUMENT
+if (sec.type === "word-document") {
+  return (
+    <div
+      key={i}
+      className="
+        relative
+        w-full
+        overflow-hidden
+        my-0
+        py-0
+      "
+      style={{
+        height: "2200px",
+      }}
+    >
 
+      {/* CROPPED WORD VIEW */}
+      <iframe
+        src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(sec.docx)}`}
+        className="
+          absolute
+          top-0
+          left-0
+          w-[135%]
+          border-0
+          bg-white
+        "
+        style={{
+          height: "2600px",
+          border: "none",
+          transform: "scale(1.12)",
+          transformOrigin: "top left",
+          marginLeft: "-11%",
+          marginTop: "-140px",
+          overflow: "hidden",
+        }}
+      />
 
-              // FULL TEXT
-              if (sec.type === "text") {
-                return (
-                  <div key={i} dangerouslySetInnerHTML={{ __html: sec.content }} />
-                );
-              }
+      {/* TOP HIDE */}
+      <div className="absolute top-0 left-0 w-full h-[120px] bg-white z-20 pointer-events-none" />
 
-              // IMAGE LEFT
-              if (sec.type === "image-left") {
-                return (
-                  <div key={i} className="grid md:grid-cols-2 gap-6 my-6">
+      {/* LEFT HIDE */}
+      <div className="absolute top-0 left-0 w-[90px] h-full bg-white z-20 pointer-events-none" />
 
-                    {sec.image && sec.image.trim() !== "" && (
-                      <img src={sec.image} className="rounded" />
-                    )}
+      {/* RIGHT HIDE */}
+      <div className="absolute top-0 right-0 w-[90px] h-full bg-white z-20 pointer-events-none" />
 
-                    <div dangerouslySetInnerHTML={{ __html: sec.content }} />
-                  </div>
-                );
-              }
+      {/* PAGE GAP HIDER */}
+      <div className="absolute inset-0 pointer-events-none z-30 bg-transparent" />
 
-              // IMAGE RIGHT
-              if (sec.type === "image-right") {
-                return (
-                  <div key={i} className="grid md:grid-cols-2 gap-6 my-6">
-                    <div dangerouslySetInnerHTML={{ __html: sec.content }} />
-                    {sec.image && sec.image.trim() !== "" && (
-                      <img src={sec.image} className="rounded" />
-                    )}
-                  </div>
-                );
-              }
+    </div>
+  );
+}
 
-              // TWO TEXT
-              if (sec.type === "two-text") {
-                return (
-                  <div key={i} className="grid md:grid-cols-2 gap-12 my-6">
-                    <div dangerouslySetInnerHTML={{ __html: sec.content }} />
-
-                    <div dangerouslySetInnerHTML={{ __html: sec.content2 }} />
-                  </div>
-                );
-              }
-
-              // TWO IMAGE
-              if (sec.type === "two-image") {
-                return (
-                  <div key={i} className="grid md:grid-cols-2 gap-6 my-6">
+                // SUBTITLE
+                if (sec.type === "subtitle") {
+                  return (
                     <div
-                      style={{
-                        padding: sec.imageSettings?.padding || 0,
-                        background: "#fff",
+                      key={i}
+                      className="
+                      mobile-content-fix
+                        text-xl
+                        md:text-2xl
+                        font-semibold
+                        text-slate-800
+                        leading-snug
+                        my-8
+                        border-l-4
+                        border-purple-500
+                        pl-5
+                      "
+                      dangerouslySetInnerHTML={{
+                        __html: sec.content,
                       }}
+                    />
+                  );
+                }
+
+                // FULL TEXT
+                // if (sec.type === "text") {
+                //   return (
+                //     <div
+                //       key={i}
+                //       className="my-6"
+                //       dangerouslySetInnerHTML={{
+                //         __html: sec.content,
+                //       }}
+                //     />
+                //   );
+                // }
+                if (sec.type === "text") {
+  return (
+    <div
+      key={i}
+      className="my-6 mobile-content-fix"
+    >
+      <div
+        dangerouslySetInnerHTML={{
+          __html: sec.content,
+        }}
+      />
+    </div>
+  );
+}
+
+                // IMAGE LEFT
+                if (sec.type === "image-left") {
+                  return (
+                    <div
+                      key={i}
+                      className="grid md:grid-cols-2 gap-8 my-10 items-start min-w-0"
                     >
-                      {sec.image && sec.image.trim() !== "" && (
-                        <img
-                          src={sec.image}
-                          style={{
-                            width: "100%",
-                            objectFit: sec.imageSettings?.objectFit || "cover",
-                            borderRadius: sec.imageSettings?.borderRadius || 0,
-                            aspectRatio: sec.imageSettings?.aspectRatio || "auto",
-                          }}
-                        />
-                      )}
+
+                      {sec.image &&
+                        sec.image.trim() !== "" && (
+                          <img
+                            src={sec.image}
+                            className="
+                              rounded-2xl
+                              w-full
+                              object-cover
+                            "
+                          />
+                        )}
+
+                      <div
+                       className="mobile-content-fix min-w-0"
+                        dangerouslySetInnerHTML={{
+                          __html: sec.content,
+                        }}
+                      />
                     </div>
-                    {sec.image2 && sec.image2.trim() !== "" && (
-                      <img src={sec.image2} />
-                    )}
-                  </div>
-                );
-              }
+                  );
+                }
 
-              // FULL IMAGE
-              if (sec.type === "full-image") {
-                if (!sec.image || sec.image.trim() === "") return null;
+                // IMAGE RIGHT
+                if (sec.type === "image-right") {
+                  return (
+                    <div
+                      key={i}
+                      className="grid md:grid-cols-2 gap-8 my-10 items-start min-w-0"
+                    >
 
-                return (
-                  <img
-                    key={i}
-                    src={sec.image}
-                    className="w-full my-6 rounded"
-                  />
-                );
-              }
+                      <div
+                       className="mobile-content-fix min-w-0"
+                        dangerouslySetInnerHTML={{
+                          __html: sec.content,
+                        }}
+                      />
 
-              return null;
-            })}
+                      {sec.image &&
+                        sec.image.trim() !== "" && (
+                          <img
+                            src={sec.image}
+                            className="
+                              rounded-2xl
+                              w-full
+                              object-cover
+                            "
+                          />
+                        )}
+                    </div>
+                  );
+                }
+
+                // TWO TEXT
+                if (sec.type === "two-text") {
+                  return (
+                    <div
+                      key={i}
+                      className="grid md:grid-cols-2 gap-12 my-10"
+                    >
+
+                      <div
+                       className="mobile-content-fix min-w-0"
+                        dangerouslySetInnerHTML={{
+                          __html: sec.content,
+                        }}
+                      />
+
+                      <div
+                       className="mobile-content-fix min-w-0"
+                        dangerouslySetInnerHTML={{
+                          __html: sec.content2,
+                        }}
+                      />
+
+                    </div>
+                  );
+                }
+
+                // TWO IMAGE
+                if (sec.type === "two-image") {
+                  return (
+                    <div
+                      key={i}
+                      className="grid md:grid-cols-2 gap-8 my-10"
+                    >
+
+                      {sec.image &&
+                        sec.image.trim() !== "" && (
+                          <img
+                            src={sec.image}
+                            className="
+                              rounded-2xl
+                              w-full
+                              object-cover
+                            "
+                          />
+                        )}
+
+                      {sec.image2 &&
+                        sec.image2.trim() !== "" && (
+                          <img
+                            src={sec.image2}
+                            className="
+                              rounded-2xl
+                              w-full
+                              object-cover
+                            "
+                          />
+                        )}
+
+                    </div>
+                  );
+                }
+
+                // FULL IMAGE
+                if (sec.type === "full-image") {
+
+                  if (!sec.image || sec.image.trim() === "")
+                    return null;
+
+                  return (
+                    <img
+                      key={i}
+                      src={sec.image}
+                      className="
+                        w-full
+                        my-10
+                        rounded-2xl
+                      "
+                    />
+                  );
+                }
+
+                return null;
+              })}
+
+            </div>
           </div>
-          {/* RIGHT SIDE - MORE NEWS */}
+
+          {/* RIGHT SIDE */}
           <aside className="lg:col-span-1">
+
             <div className="sticky top-28 space-y-10">
 
-
-              {/* ================= TITLE ================= */}
+              {/* TITLE */}
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-[0.2em] 
-                      bg-gradient-to-r from-purple-600 to-fuchsia-500 
-                      bg-clip-text text-transparent mb-4 text-center">
+
+                <h4
+                  className="
+                    text-xs
+                    font-bold
+                    uppercase
+                    tracking-[0.2em]
+                    bg-gradient-to-r
+                    from-purple-600
+                    to-fuchsia-500
+                    bg-clip-text
+                    text-transparent
+                    mb-4
+                    text-center
+                  "
+                >
                   More News & Events
                 </h4>
 
                 <div className="h-[1px] bg-gradient-to-r from-purple-200 via-purple-300 to-transparent" />
+
               </div>
 
-              {/* ================= NEWS LIST ================= */}
+              {/* NEWS */}
               <div className="space-y-5">
+
                 {allNews
                   .filter((item) => item.slug !== slug)
                   .map((item, idx) => {
 
                     const image =
-                      item.sections?.find(sec => sec.image && sec.image.trim() !== "")?.image || null;
+                      item.sections?.find(
+                        (sec) =>
+                          sec.image &&
+                          sec.image.trim() !== ""
+                      )?.image || null;
 
                     return (
                       <motion.div
                         key={item.slug}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 + idx * 0.08 }}
+                        transition={{
+                          delay: 0.2 + idx * 0.08,
+                        }}
                       >
+
                         <Link
                           to={`/news/${item.slug}`}
                           className="
-                              group relative flex items-center gap-4 p-4
-                              rounded-2xl 
-                              bg-white/70 backdrop-blur-md
-                              border border-purple-100
-                              hover:border-purple-300
-                              hover:shadow-xl hover:shadow-purple-100/50
-                              transition-all duration-300
-                              hover:-translate-y-1
-                            "
+                            group
+                            relative
+                            flex
+                            items-center
+                            gap-4
+                            p-4
+                            rounded-2xl
+                            bg-white/70
+                            backdrop-blur-md
+                            border
+                            border-purple-100
+                            hover:border-purple-300
+                            hover:shadow-xl
+                            hover:shadow-purple-100/50
+                            transition-all
+                            duration-300
+                            hover:-translate-y-1
+                          "
                         >
 
-                          {/* 🖼 IMAGE */}
+                          {/* IMAGE */}
                           <div className="w-20 h-16 rounded-lg overflow-hidden flex-shrink-0">
+
                             {image ? (
                               <img
                                 src={image}
-                                className="w-full h-full object-cover group-hover:scale-105 transition"
+                                className="
+                                  w-full
+                                  h-full
+                                  object-cover
+                                  group-hover:scale-105
+                                  transition
+                                "
                               />
                             ) : (
                               <div className="w-full h-full bg-gray-200" />
                             )}
+
                           </div>
 
-                          {/* TEXT CONTENT */}
+                          {/* TEXT */}
                           <div className="flex-1">
 
-                            <h5 className="
-                                text-sm font-semibold leading-snug
+                            <h5
+                              className="
+                                text-sm
+                                font-semibold
+                                leading-snug
                                 text-slate-700
                                 group-hover:text-purple-600
                                 transition-colors
-                              ">
+                              "
+                            >
                               {item.title}
                             </h5>
 
@@ -331,18 +527,34 @@ export default function NewsDetail() {
                           </div>
 
                           {/* ARROW */}
-                          <span className="
-                              text-slate-300 text-lg
+                          <span
+                            className="
+                              text-slate-300
+                              text-lg
                               group-hover:text-purple-500
                               group-hover:translate-x-1
-                              transition-all duration-300
-                            ">
+                              transition-all
+                              duration-300
+                            "
+                          >
                             &gt;
                           </span>
 
-                          {/* HOVER GLOW */}
-                          <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition 
-                              bg-gradient-to-r from-purple-100/30 via-transparent to-purple-100/30" />
+                          {/* HOVER */}
+                          <div
+                            className="
+                              absolute
+                              inset-0
+                              rounded-2xl
+                              opacity-0
+                              group-hover:opacity-100
+                              transition
+                              bg-gradient-to-r
+                              from-purple-100/30
+                              via-transparent
+                              to-purple-100/30
+                            "
+                          />
 
                         </Link>
                       </motion.div>
@@ -350,48 +562,10 @@ export default function NewsDetail() {
                   })}
               </div>
 
-              {/* ================= CTA ================= */}
-              <motion.div
-                whileHover={{ y: -4 }}
-                className="
-                      relative p-8 rounded-3xl
-                      bg-gradient-to-br from-purple-900 via-indigo-900 to-slate-900
-                      text-white overflow-hidden
-                      shadow-2xl
-                    "
-              >
-                {/* Glow */}
-                <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-800/30 rounded-full blur-3xl" />
-
-                <div className="relative z-10">
-                  <h4 className="text-xl font-semibold mb-3">
-                    Let’s Build Your Team
-                  </h4>
-
-                  <p className="text-sm text-slate-300 mb-6 leading-relaxed">
-                    Connect with us and discover how we can help you scale faster.
-                  </p>
-
-                  <Link
-                    to="/contact"
-                    state={{ scrollToForm: true }}
-                    className="
-                          block text-center w-full py-3 rounded-xl
-                          bg-white text-slate-900 font-medium
-                          hover:bg-purple-50
-                          transition-all
-                        "
-                  >
-                    Contact Us
-                  </Link>
-                </div>
-              </motion.div>
-
             </div>
           </aside>
         </div>
       </div>
-
 
       <Footer />
     </div>
