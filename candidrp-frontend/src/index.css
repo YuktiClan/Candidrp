@@ -32,3 +32,66 @@ body {
     width: calc(25% - 12px) !important; /* ✅ 4 in one row */
   }
 }
+
+
+
+
+
+
+
+/* Article section */
+
+
+.mobile-content-fix{
+  min-width:0;
+}
+
+.mobile-content-fix *{
+  max-width:100%;
+}
+
+.mobile-content-fix p,
+.mobile-content-fix div,
+.mobile-content-fix span,
+.mobile-content-fix li{
+  overflow-wrap:break-word;
+  word-break:break-word;
+}
+
+
+
+@media (max-width: 768px) {
+
+  .mobile-content-fix {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .mobile-content-fix * {
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .mobile-content-fix img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  .mobile-content-fix table {
+    display: block;
+    width: 100% !important;
+    overflow-x: auto;
+  }
+
+   .mobile-content-fix [style]{
+    max-width:100% !important;
+  }
+
+  .mobile-content-fix p,
+  .mobile-content-fix div,
+  .mobile-content-fix span,
+  .mobile-content-fix li {
+    word-break: break-word;
+    overflow-wrap:anywhere;
+  }
+}
