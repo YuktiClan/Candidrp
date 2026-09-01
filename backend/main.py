@@ -35,22 +35,6 @@ load_dotenv(dotenv_path=env_path)
 
 app = FastAPI()
 
-import gspread
-from google.oauth2.service_account import Credentials
-
-# 🔐 Setup Google Sheets API
-scope = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
-
-creds = Credentials.from_service_account_file("credentials.json", scopes=scope)
-
-client_gsheet = gspread.authorize(creds)
-
-# SHEET_ID = "1sTWFLra6JIS3NYyA_VTW2kcGHsv6DLHpYPvYOQF3SY"
-# SHEET_NAME = "Form_Responses"
-
-
-SHEET_ID = os.getenv("SHEET_ID")
-SHEET_NAME = os.getenv("SHEET_NAME")
 
 
 # admin login password
