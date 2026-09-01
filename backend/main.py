@@ -1,3 +1,5 @@
+from importlib.resources import path
+
 from fastapi import FastAPI, Form, UploadFile, File
 from pymongo import MongoClient
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,11 +10,11 @@ import mammoth
 import uuid
 import re
 from datetime import datetime
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email.mime.text import MIMEText
-from email import encoders
+# import smtplib
+# from email.mime.multipart import MIMEMultipart
+# from email.mime.base import MIMEBase
+# from email.mime.text import MIMEText
+# from email import encoders
 from typing import Optional
 import html
 
@@ -28,13 +30,38 @@ from fastapi import Depends, HTTPException
 from jose import jwt, JWTError
 
 from pathlib import Path
+from fastapi import BackgroundTasks
+from dotenv import load_dotenv
+import cloudinary
+import cloudinary.uploader
+import requests
 
-env_path = Path(__file__).resolve().parent / ".env"
-load_dotenv(dotenv_path=env_path)
+load_dotenv()
 
+print("MONGO_URL:", os.getenv("MONGO_URL"))
+print("EMAIL_USER:", os.getenv("EMAIL_USER"))
+print("EMAIL_PASS:", os.getenv("EMAIL_PASS"))  # ✅ ADD HERE
+print("SENDER_EMAIL:", os.getenv("SENDER_EMAIL"))
 
 app = FastAPI()
 
+
+
+
+
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET")
+)
+
+@app.get("/")
+def home():
+    return {"message": "Backend Running"}
+
+@app.get("/ping")
+def ping():
+    return {"status": "alive"}
 
 
 # admin login password
@@ -50,58 +77,11 @@ def validate_password(password):
     return True
 
 
-# @app.post("/auth/send-otp")
-# def send_otp(data: dict = Body(...)):
-#     email = data.get("email")
-
-#     if not email:
-#         return {"error": "Email required"}
-
-#     # 🔥 CHECK IF ALREADY REGISTERED
-#     if admins_collection.find_one({"email": email}):
-#         return {"error": "Already exists"}
-
-#     otp = str(random.randint(100000, 999999))
-
-#     otp_collection.insert_one(
-#         {
-#             "email": email,
-#             "otp": otp,
-#             "expires_at": datetime.utcnow() + timedelta(minutes=10),
-#         }
-#     )
-
-#     send_email(
-#         name="Verification",
-#         email=email,
-#         phone="",
-#         company="",
-#         message=f"Your OTP is: {otp}",
-#         file_path=None,
-#     )
-
-#     return {"message": "OTP sent ✅"}
-
-
-# @app.post("/auth/verify-otp")
-# def verify_otp(data: dict = Body(...)):
-#     email = data.get("email")
-#     otp = data.get("otp")
-
-#     record = otp_collection.find_one({"email": email, "otp": otp})
-
-#     if not record:
-#         return {"error": "Invalid OTP"}
-
-#     if record["expires_at"] < datetime.utcnow():
-#         return {"error": "OTP expired"}
-
-#     return {"message": "OTP verified ✅"}
-
 
 # Contact
 @app.post("/contact")
 async def contact_form(
+    background_tasks: BackgroundTasks,   # ✅ ADD THIS
     email: str = Form(...),
     name: str = Form(...),
     company: str = Form(""),
@@ -151,10 +131,15 @@ async def contact_form(
     )
 
     # ✅ Send Email
-    try:
-        send_email(name, email, phone, company, message, file_path)
-    except Exception as e:
-        print("EMAIL ERROR:", e)
+    background_tasks.add_task(
+        send_email,
+        name,
+        email,
+        phone,
+        company,
+        message,
+        file_path
+    )
 
     return {"message": "Form submitted & email sent ✅"}
 
@@ -176,39 +161,38 @@ def format_phone(phone):
     return f"+{phone}"
 
 
+
+
 def send_email(name, email, phone, company, message, file_path):
+    import requests
+    import base64
+    import os
 
-    # sender_email = "no-reply@candidrp.com" -- Required App password setup for this email
-    # receiver_email = "hr@candidrp.com"
+    url = "https://api.brevo.com/v3/smtp/email"
 
-    # sender_email = "deveshsharma.sap@gmail.com"
-    # receiver_email = "deveshsharma9958@gmail.com"
-
-    sender_email = os.getenv("EMAIL_USER")
-    receiver_email = os.getenv("EMAIL_RECEIVER")
-
-    msg = MIMEMultipart()
-    # msg["From"] = "Candid Resourcing Partners <deveshsharma.sap@gmail.com>"
-
-    msg["From"] = f"Candid Resourcing Partners <{sender_email}>"
-    msg["Reply-To"] = email
-    msg["To"] = receiver_email
-    msg["Subject"] = f"New Enquiry from {name} | Candid Website"
+    headers = {
+        "accept": "application/json",
+        "api-key": os.getenv("EMAIL_PASS"),  # ✅ your working key
+        "content-type": "application/json"
+    }
 
     formatted_message = message.replace("\n", "<br>")
-    formatted_phone = format_phone(phone)
+
+    # ✅ FIX (avoid crash if phone empty)
+    formatted_phone = phone if phone else "N/A"
 
     attachment_note = (
         """
-    <p style="margin-top: 20px; font-size: 14px; color: gray;">
-    📎 Resume/CV attached with this email
-    </p>
-    """
+        <p style="margin-top: 20px; font-size: 14px; color: gray;">
+        📎 Resume/CV attached with this email
+        </p>
+        """
         if file_path
         else ""
     )
 
-    html_body = f"""
+    # ✅ DESIGN 
+    html_content = f"""
     <html>
     <body style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 20px;">
         
@@ -223,42 +207,29 @@ def send_email(name, email, phone, company, message, file_path):
         <!-- Content -->
         <div style="padding: 20px;">
             
-            <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+            <table style="width: 100%; border-collapse: collapse;">
                 <tr>
-                    <td style="padding: 10px; font-weight: bold; width: 30%; vertical-align: top;">
-                        Name:
-                    </td>
-                    <td style="padding: 10px; word-break: break-word;">
+                    <td style="padding: 10px; font-weight: bold; width: 30%;">Name:</td>
+                    <td style="padding: 10px; word-break: break-word; white-space: normal;">
                         {name}
                     </td>
                 </tr>
 
                 <tr style="background: #f9f9f9;">
-                    <td style="padding: 10px; font-weight: bold; vertical-align: top;">
-                        Email:
-                    </td>
-                    <td style="padding: 10px; word-break: break-word;">
+                    <td style="padding: 10px; font-weight: bold;">Email:</td>
+                    <td style="padding: 10px; word-break: break-word; white-space: normal;">
                         {email}
                     </td>
                 </tr>
-                
-                
-                
 
                 <tr>
-                    <td style="padding: 10px; font-weight: bold; vertical-align: top;">
-                        Phone:
-                    </td>
-                    <td style="padding: 10px; word-break: break-word;">
-                        {formatted_phone}
-                    </td>
+                    <td style="padding: 10px; font-weight: bold;">Phone:</td>
+                    <td style="padding: 10px;">{formatted_phone}</td>
                 </tr>
 
                 <tr style="background: #f9f9f9;">
-                    <td style="padding: 10px; font-weight: bold; vertical-align: top;">
-                        Company:
-                    </td>
-                    <td style="padding: 10px; word-break: break-word;">
+                    <td style="padding: 10px; font-weight: bold;">Company:</td>
+                    <td style="padding: 10px; word-break: break-word; white-space: normal;">
                         {company}
                     </td>
                 </tr>
@@ -266,15 +237,13 @@ def send_email(name, email, phone, company, message, file_path):
 
             <!-- Message -->
             <div style="margin-top: 20px;">
-            <h3 style="margin-bottom: 5px;">Message</h3>
-            <div style="background: #f4f6f8; padding: 15px; border-radius: 6px;">
-                {formatted_message}
-            </div>
+                <h3>Message</h3>
+                <div style="background: #f4f6f8; padding: 15px; border-radius: 6px;">
+                    {formatted_message}
+                </div>
             </div>
 
-            <!-- Attachment Note -->
             {attachment_note}
-            
 
         </div>
 
@@ -288,35 +257,42 @@ def send_email(name, email, phone, company, message, file_path):
     </body>
     </html>
     """
-    msg.attach(MIMEText(html_body, "html"))
 
-    # 📎 Attach file
-    if file_path:
+    data = {
+        "sender": {
+            "name": "Candid Resourcing Partners",
+            "email": os.getenv("SENDER_EMAIL")
+        },
+        "to": [
+            {
+                "email": os.getenv("EMAIL_RECEIVER")
+            }
+        ],
+        "subject": f"New Enquiry from {name} | Candid Website",
+        "htmlContent": html_content
+    }
+
+    # ✅ ATTACHMENT SUPPORT
+    if file_path and os.path.exists(file_path):
         with open(file_path, "rb") as f:
-            part = MIMEBase("application", "octet-stream")
-            part.set_payload(f.read())
+            encoded_file = base64.b64encode(f.read()).decode()
 
-        encoders.encode_base64(part)
-        filename = os.path.basename(file_path)
+        data["attachment"] = [{
+            "content": encoded_file,
+            "name": os.path.basename(file_path)
+        }]
 
-        part.add_header("Content-Disposition", f"attachment; filename={filename}")
+    try:
+        response = requests.post(url, json=data, headers=headers)
+        print("✅ Brevo API:", response.status_code, response.text)
 
-        msg.attach(part)
+    except Exception as e:
+        print("❌ Email API error:", str(e))
 
-    # SMTP
-    server = smtplib.SMTP("smtp.gmail.com", 587)
-    server.starttls()
-
-    # app_password = "tvqh bmwp yezh djoh"
-    app_password = os.getenv("EMAIL_PASS")
-
-    server.login(sender_email, app_password.replace(" ", ""))
-    server.send_message(msg)
-    server.quit()
-
-    # 🔥 DELETE FILE AFTER EMAIL
+    # ✅ CLEANUP
     if file_path and os.path.exists(file_path):
         os.remove(file_path)
+
 
 
 # -------------------------
@@ -324,14 +300,15 @@ def send_email(name, email, phone, company, message, file_path):
 # -------------------------
 
 
-# client = MongoClient(
-#     "mongodb+srv://candidrp:candidrp1234@cluster0.shhcs3n.mongodb.net/?appName=Cluster0"
-# )
-# db = client["candid"]
 
+MONGO_URL = os.getenv("MONGO_URL")
+DB_NAME = os.getenv("DB_NAME")
 
-client = MongoClient(os.getenv("MONGO_URL"))
-db = client[os.getenv("DB_NAME")]
+if not MONGO_URL or not DB_NAME:
+    raise Exception("❌ Missing environment variables")
+
+client = MongoClient(MONGO_URL)
+db = client[DB_NAME]
 
 
 news_collection = db["news"]
@@ -417,27 +394,24 @@ def verify_password(plain, hashed):
     plain = plain[:72]
     return pwd_context.verify(plain, hashed)
 
+@app.on_event("startup")
+def create_admins():
+    admins = [
+        {
+            "email": "admin@candidrp.com",
+            "password": hash_password("Admin@123"),
+        },
+        {
+            "email": "developer@yuktic.com",
+            "password": hash_password("Admin@123"),
+        },
+    ]
 
-admins = [
-    {
-        "email": "admin@candidrp.com",
-        "password": hash_password("Admin@123"),
-    },
-    {
-        "email": "developer@yuktic.com",
-        "password": hash_password("Admin@123"),
-    },
-]
+    for admin in admins:
+        existing = admins_collection.find_one({"email": admin["email"]})
+        if not existing:
+            admins_collection.insert_one(admin)
 
-for admin in admins:
-    existing = admins_collection.find_one({"email": admin["email"]})
-    if not existing:
-        admins_collection.insert_one(admin)
-
-
-# def verify_password(plain, hashed):
-#     plain = plain[:72]
-#     return pwd_context.verify(plain, hashed)
 
 
 def create_token(data: dict):
@@ -482,30 +456,6 @@ def verify_token(token: str):
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
-# @app.post("/auth/register")
-# def register_user(data: dict):
-
-#     email = data.get("email")
-#     password = data.get("password")
-
-#     if not validate_password(password):
-#         return {"error": "Weak password"}
-
-#     if admins_collection.find_one({"email": email}):
-#         return {"error": "Already exists"}
-
-#     admins_collection.insert_one(
-#         {
-#             "email": email,
-#             "name": data.get("name"),
-#             "company": data.get("company"),
-#             "phone": data.get("phone"),
-#             "password": hash_password(password),
-#             "created_at": datetime.utcnow(),
-#         }
-#     )
-
-#     return {"message": "Registered successfully ✅"}
 
 
 @app.post("/admin/login")
@@ -514,42 +464,12 @@ def admin_login(email: str = Body(...), password: str = Body(...)):
     admin = admins_collection.find_one({"email": email})
 
     if not admin or not verify_password(password, admin["password"]):
-        return {"error": "Invalid credentials"}
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = create_token({"email": email})
 
     return {"message": "Login successful ✅", "token": token}
 
-
-# @app.post("/admin/forgot-password")
-# def forgot_password(email: str = Body(...)):
-
-#     admin = admins_collection.find_one({"email": email})
-
-#     if not admin:
-#         return {"error": "Email not registered"}
-
-#     otp = str(random.randint(100000, 999999))
-
-#     reset_tokens_collection.insert_one(
-#         {
-#             "email": email,
-#             "otp": otp,
-#             "expires_at": datetime.utcnow() + timedelta(minutes=10),
-#         }
-#     )
-
-#     # 🔥 SEND EMAIL (reuse your email function)
-#     send_email(
-#         name="Admin",
-#         email=email,
-#         phone="",
-#         company="",
-#         message=f"Your OTP is: {otp}",
-#         file_path=None,
-#     )
-
-#     return {"message": "OTP sent to email ✅"}
 
 
 @app.post("/admin/reset-password")
@@ -585,18 +505,21 @@ def reset_password(email: str = Body(...), new_password: str = Body(...)):
 
 @app.post("/upload")
 async def upload_image(file: UploadFile = File(...)):
-    file_path = f"uploads/{file.filename}"
+    import uuid
+
+    # ✅ unique filename
+    unique_name = f"{uuid.uuid4()}_{file.filename}"
+    file_path = f"uploads/{unique_name}"
 
     with open(file_path, "wb") as f:
         f.write(await file.read())
 
-    return {"url": f"http://localhost:8000/uploads/{file.filename}"}
+    BASE_URL = os.getenv("BASE_URL")
 
+    return {
+        "url": f"{BASE_URL}/uploads/{unique_name}"
+    }
 
-# @app.post("/add-news")
-# async def add_news(data: dict):
-#     news_collection.insert_one(data)
-#     return {"message": "Added"}
 
 
 @app.post("/add-news")
@@ -658,8 +581,46 @@ def update_news(id: str, data: dict):
 
 @app.delete("/delete/{id}")
 def delete_news(id: str):
+    news = news_collection.find_one({"_id": ObjectId(id)})
+
+    if not news:
+        return {"error": "News not found"}
+
+    # 🔥 DELETE FROM CLOUDINARY
+    for sec in news.get("sections", []):
+
+        # ✅ IMAGE 1
+        if sec.get("image_public_id"):
+            try:
+                cloudinary.uploader.destroy(
+                    sec["image_public_id"]
+                )
+            except Exception as e:
+                print("Error deleting image:", e)
+
+        # ✅ IMAGE 2
+        if sec.get("image2_public_id"):
+            try:
+                cloudinary.uploader.destroy(
+                    sec["image2_public_id"]
+                )
+            except Exception as e:
+                print("Error deleting image2:", e)
+
+        # ✅ WORD FILE
+        if sec.get("docx_public_id"):
+            try:
+                cloudinary.uploader.destroy(
+                    sec["docx_public_id"],
+                    resource_type="raw"
+                )
+            except Exception as e:
+                print("Error deleting docx:", e)
+
+    # 🔥 DELETE FROM DB
     news_collection.delete_one({"_id": ObjectId(id)})
-    return {"message": "Deleted"}
+
+    return {"message": "Deleted with images ✅"}
 
 
 # =====================================================
@@ -668,14 +629,25 @@ def delete_news(id: str):
 
 
 # ➕ ADD JOB
+# =====================================================
+# 🔥 JOBS APIs
+# =====================================================
+
+# =====================================================
+# ➕ ADD JOB
+# =====================================================
+
 @app.post("/add-job")
 def add_job(data: dict):
-    # Create a server-side publish date.
-    # Do NOT depend on the frontend for this.
+
+    # Server controls the publish time.
+    # Frontend must NOT decide this.
     published_at = datetime.utcnow()
 
     job = {
         **data,
+
+        # Always generated by backend
         "published_at": published_at,
     }
 
@@ -684,8 +656,8 @@ def add_job(data: dict):
     notifications_collection.insert_one(
         {
             "type": "job",
-            "title": f"New Job: {data.get('title')}",
-            "message": data.get("location"),
+            "title": f"New Job: {data.get('title', 'Untitled Job')}",
+            "message": data.get("location", ""),
             "link": "/create-job",
             "date": datetime.utcnow(),
         }
@@ -693,14 +665,19 @@ def add_job(data: dict):
 
     return {
         "id": str(inserted.inserted_id),
-        "message": "Job added",
+        "message": "Job added successfully ✅",
         "published_at": published_at.isoformat() + "Z",
     }
 
 
 # 📥 GET JOBS
+# =====================================================
+# 📥 GET JOBS
+# =====================================================
+
 @app.get("/jobs")
 def get_jobs():
+
     jobs = list(
         jobs_collection
         .find()
@@ -711,11 +688,15 @@ def get_jobs():
     )
 
     for job in jobs:
+
         job["id"] = str(job["_id"])
         del job["_id"]
 
-        # Convert MongoDB datetime to JSON-friendly ISO string
-        if isinstance(job.get("published_at"), datetime):
+        # Convert Mongo datetime to JSON-safe ISO string
+        if isinstance(
+            job.get("published_at"),
+            datetime
+        ):
             job["published_at"] = (
                 job["published_at"].isoformat() + "Z"
             )
@@ -723,9 +704,13 @@ def get_jobs():
     return jobs
 
 
+# =====================================================
+# 🔢 JOB COUNT
+# =====================================================
 
 @app.get("/jobs/count")
 def get_jobs_count():
+
     total = jobs_collection.count_documents({})
 
     return {
@@ -733,24 +718,99 @@ def get_jobs_count():
     }
 
 # ❌ DELETE JOB
+# =====================================================
+# ❌ DELETE JOB
+# =====================================================
+
 @app.delete("/delete-job/{id}")
 def delete_job(id: str):
-    jobs_collection.delete_one({"_id": ObjectId(id)})
-    return {"message": "Deleted"}
 
+    try:
+        object_id = ObjectId(id)
+
+    except Exception:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid job ID"
+        )
+
+    result = jobs_collection.delete_one(
+        {
+            "_id": object_id
+        }
+    )
+
+    if result.deleted_count == 0:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Job not found"
+        )
+
+    return {
+        "message": "Job deleted successfully ✅"
+    }
+
+
+# =====================================================
+# ✏️ UPDATE JOB
+# =====================================================
 
 @app.put("/update-job/{id}")
-def update_job(id: str, data: dict):
+def update_job(
+    id: str,
+    data: dict
+):
 
-    # Never allow normal editing to change the original publish date
-    data.pop("published_at", None)
+    try:
+        object_id = ObjectId(id)
+
+    except Exception:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid job ID"
+        )
+
+    # -------------------------------------------------
+    # NEVER allow frontend to change publish time
+    # -------------------------------------------------
+
+    data.pop(
+        "published_at",
+        None
+    )
+
+    # Never allow Mongo ID modification
+    data.pop(
+        "_id",
+        None
+    )
+
+    data.pop(
+        "id",
+        None
+    )
+
+    if not data:
+
+        raise HTTPException(
+            status_code=400,
+            detail="No valid fields to update"
+        )
 
     result = jobs_collection.update_one(
-        {"_id": ObjectId(id)},
-        {"$set": data}
+        {
+            "_id": object_id
+        },
+        {
+            "$set": data
+        }
     )
 
     if result.matched_count == 0:
+
         raise HTTPException(
             status_code=404,
             detail="Job not found"
@@ -758,23 +818,13 @@ def update_job(id: str, data: dict):
 
     return {
         "id": id,
-        "message": "Updated"
+        "message": "Job updated successfully ✅"
     }
 
 
 # =====================================================
 # 📝 Applicants
 # =====================================================
-
-
-@app.get("/applicants")
-def get_applicants():
-    print("Trying to open sheet:", SHEET_ID)
-
-    sheet = client_gsheet.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
-
-    rows = sheet.get_all_records()
-    return rows
 
 
 def clean_html(html):
@@ -814,7 +864,8 @@ async def upload_article(file: UploadFile = File(...)):
 
                 image_paths.append(path)
 
-                return {"src": f"http://localhost:8000/{path}"}
+                BASE_URL = os.getenv("BASE_URL")
+                return {"src": f"{BASE_URL}/{path}"}
 
             except Exception as e:
                 print("IMAGE ERROR:", e)
@@ -856,37 +907,28 @@ async def upload_article(file: UploadFile = File(...)):
         return {"error": str(e)}
 
 
-# Notes Section
-# @app.post("/notes")
-# async def save_note(data: dict):
-#     content = data.get("content")
 
-#     if not content:
-#         return {"error": "Content required"}
+@app.post("/delete-image")
+async def delete_image(data: dict):
 
-#     note = {"content": content, "date": datetime.now().isoformat()}
+    public_id = data.get("public_id")
 
-#     inserted = notes_collection.insert_one(note)
+    if not public_id:
+        return {"success": False}
 
-#     return {"id": str(inserted.inserted_id), "message": "Note saved ✅"}
+    try:
+        cloudinary.uploader.destroy(public_id)
 
+        return {"success": True}
 
-# @app.get("/notes")
-# def get_notes():
-#     data = list(notes_collection.find().sort("date", -1))
-
-#     for item in data:
-#         item["id"] = str(item["_id"])
-#         del item["_id"]
-
-#     return data
-
-
-# @app.delete("/notes/{id}")
-# def delete_note(id: str):
-#     notes_collection.delete_one({"_id": ObjectId(id)})
-#     return {"message": "Deleted ✅"}
-
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+        
+        
+        
 
 @app.get("/notifications")
 def get_notifications():
@@ -906,87 +948,9 @@ def delete_notification(id: str):
         return {"message": "Deleted ✅"}
     except:
         return {"error": "Invalid ID"}
+    
+    
+    
 
-
-# notifications_collection.insert_one({
-#     "type": "contact",
-#     "title": f"New Contact: {os.name}",
-#     "message": email,
-#     "link": "/contacts",
-#     "read": False,
-#     "date": datetime.now()
-# })
-
-
-# @app.get("/articles")
-# def get_articles():
-#     articles = list(articles_collection.find())
-
-#     for a in articles:
-#         a["id"] = str(a["_id"])
-#         del a["_id"]
-
-#     return articles
-
-
-# @app.post("/add-article")
-# def add_article(data: dict):
-
-#     sections = data.get("sections", [])
-
-#     # 🔥 CLEAN EACH SECTION TEXT
-#     for sec in sections:
-#         if "text" in sec:
-#             sec["text"] = clean_html(sec["text"])
-
-#     article = {
-#         "title": data.get("title"),
-#         "slug": data.get("slug"),
-#         "sections": sections,
-#         "status": data.get("status", "published"),
-#         "date": data.get("date", datetime.now().isoformat()),
-#     }
-
-#     articles_collection.insert_one(article)
-
-#     return {"message": "Article added ✅"}
-
-
-# @app.get("/article/{slug}")
-# def get_article_by_slug(slug: str):
-#     article = articles_collection.find_one({"slug": slug, "status": "published"})
-
-#     if not article:
-#         return {"error": "Not found"}
-
-#     article["id"] = str(article["_id"])
-#     del article["_id"]
-
-#     # ✅ fallback for old data (VERY IMPORTANT)
-#     if "sections" not in article:
-#         article["sections"] = []
-
-#     for sec in article.get("sections", []):
-#         if "text" in sec:
-#             sec["text"] = html.unescape(sec["text"])
-
-#     return article
-
-
-# @app.delete("/delete-article/{id}")
-# def delete_article(id: str):
-
-#     article = articles_collection.find_one({"_id": ObjectId(id)})
-
-#     if not article:
-#         return {"error": "Not found"}
-
-#     # 🔥 DELETE IMAGES FROM STORAGE
-#     for img in article.get("images", []):
-#         if os.path.exists(img):
-#             os.remove(img)
-
-#     # 🔥 DELETE FROM DB
-#     articles_collection.delete_one({"_id": ObjectId(id)})
-
-#     return {"message": "Article + images deleted ✅"}
+        
+        
